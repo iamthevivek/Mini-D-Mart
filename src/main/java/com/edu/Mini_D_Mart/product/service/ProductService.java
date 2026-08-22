@@ -8,10 +8,14 @@ import com.edu.Mini_D_Mart.product.dto.ProductResponse;
 import com.edu.Mini_D_Mart.product.dto.StockAdjustmentRequest;
 import com.edu.Mini_D_Mart.product.entity.Product;
 import com.edu.Mini_D_Mart.product.repository.ProductRepository;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -57,9 +61,37 @@ public class ProductService {
             BigDecimal maxPrice,
             boolean inStockOnly
     ) {
-        String trimmedQuery = (query != null && !query.trim().isBlank()) ? query.trim() : null;
-        return productRepository.searchProducts(categoryId, trimmedQuery, minPrice, maxPrice, inStockOnly)
-                .stream()
+        Specification<Product> spec = (root, q, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.isTrue(root.get("active")));
+
+            if (categoryId != null) {
+                predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+            }
+
+            if (query != null && !query.trim().isBlank()) {
+                String searchPattern = "%" + query.trim().toLowerCase() + "%";
+                Predicate nameMatch = cb.like(cb.lower(root.get("name")), searchPattern);
+                Predicate descMatch = cb.like(cb.lower(root.get("description")), searchPattern);
+                predicates.add(cb.or(nameMatch, descMatch));
+            }
+
+            if (minPrice != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("sellingPrice"), minPrice));
+            }
+
+            if (maxPrice != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("sellingPrice"), maxPrice));
+            }
+
+            if (inStockOnly) {
+                predicates.add(cb.greaterThan(root.get("stockQuantity"), 0));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return productRepository.findAll(spec, Sort.by(Sort.Direction.ASC, "id")).stream()
                 .map(ProductResponse::from)
                 .toList();
     }
