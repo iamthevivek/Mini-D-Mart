@@ -9,10 +9,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
 public class PickupSlotService {
+
+    private static final LocalTime[][] STANDARD_SLOT_TIMES = {
+            {LocalTime.of(9, 0), LocalTime.of(11, 0)},
+            {LocalTime.of(11, 0), LocalTime.of(13, 0)},
+            {LocalTime.of(14, 0), LocalTime.of(16, 0)},
+            {LocalTime.of(16, 0), LocalTime.of(18, 0)},
+            {LocalTime.of(18, 0), LocalTime.of(20, 0)}
+    };
 
     private final PickupSlotRepository pickupSlotRepository;
 
@@ -20,13 +30,38 @@ public class PickupSlotService {
         this.pickupSlotRepository = pickupSlotRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<PickupSlotResponse> getAvailableSlots() {
-        return pickupSlotRepository.findAllByActiveTrueAndSlotDateGreaterThanEqualOrderBySlotDateAscStartTimeAsc(LocalDate.now())
-                .stream()
+        ZoneId zoneId = ZoneId.of("Asia/Kolkata");
+        LocalDate today = LocalDate.now(zoneId);
+        LocalDate tomorrow = today.plusDays(1);
+        LocalTime now = LocalTime.now(zoneId);
+
+        ensureSlotsForDate(today);
+        ensureSlotsForDate(tomorrow);
+
+        List<LocalDate> targetDates = List.of(today, tomorrow);
+        List<PickupSlot> slots = pickupSlotRepository.findAllByActiveTrueAndSlotDateInOrderBySlotDateAscStartTimeAsc(targetDates);
+
+        return slots.stream()
                 .filter(PickupSlot::hasAvailableCapacity)
+                .filter(slot -> {
+                    if (slot.getSlotDate().isEqual(today)) {
+                        return slot.getStartTime().isAfter(now);
+                    }
+                    return true;
+                })
                 .map(PickupSlotResponse::from)
                 .toList();
+    }
+
+    private void ensureSlotsForDate(LocalDate date) {
+        for (LocalTime[] slotTime : STANDARD_SLOT_TIMES) {
+            if (pickupSlotRepository.findBySlotDateAndStartTime(date, slotTime[0]).isEmpty()) {
+                PickupSlot slot = new PickupSlot(date, slotTime[0], slotTime[1], 20);
+                pickupSlotRepository.save(slot);
+            }
+        }
     }
 
     @Transactional(readOnly = true)

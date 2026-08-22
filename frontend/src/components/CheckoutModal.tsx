@@ -24,11 +24,29 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
 
-  const [address, setAddress] = useState('Flat 302, Palm Heights, Main Street');
-  const [city, setCity] = useState('Mumbai');
-  const [pincode, setPincode] = useState('400001');
-  const [phone, setPhone] = useState(user?.phone || '+91 98765 00004');
-  const [instructions, setInstructions] = useState('Please ring bell twice upon arrival');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [instructions, setInstructions] = useState('');
+
+  const getLocalDateString = (d: Date = new Date()) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayDate = new Date();
+  const todayStr = getLocalDateString(todayDate);
+
+  const tomorrowDate = new Date();
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowStr = getLocalDateString(tomorrowDate);
+
+  const currentHour = todayDate.getHours();
+  const currentMinute = todayDate.getMinutes();
+  const currentTimeStr = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
 
   useEffect(() => {
     if (isOpen) {
@@ -41,8 +59,25 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
       setIsLoadingSlots(true);
       const res = await api.get<PickupSlot[]>('/slots');
       setSlots(res.data);
-      if (res.data.length > 0) {
-        setSelectedSlotId(res.data[0].id);
+
+      const nowD = new Date();
+      const tStr = getLocalDateString(nowD);
+      const tomD = new Date();
+      tomD.setDate(tomD.getDate() + 1);
+      const tomStr = getLocalDateString(tomD);
+      const cTime = `${String(nowD.getHours()).padStart(2, '0')}:${String(nowD.getMinutes()).padStart(2, '0')}`;
+
+      const validSlots = res.data.filter((s) => {
+        if (s.slotDate === tStr) return s.startTime.substring(0, 5) > cTime;
+        if (s.slotDate === tomStr) return true;
+        return false;
+      });
+
+      const firstAvailable = validSlots.find((s) => s.available);
+      if (firstAvailable) {
+        setSelectedSlotId(firstAvailable.id);
+      } else if (validSlots.length > 0) {
+        setSelectedSlotId(validSlots[0].id);
       }
     } catch {
 
@@ -74,11 +109,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
           setIsSubmitting(false);
           return;
         }
-        payload.deliveryAddress = address;
-        payload.deliveryCity = city;
-        payload.deliveryPincode = pincode;
-        payload.deliveryPhone = phone;
-        payload.deliveryInstructions = instructions;
+        payload.deliveryAddress = address.trim();
+        payload.deliveryCity = city.trim();
+        payload.deliveryPincode = pincode.trim();
+        payload.deliveryPhone = phone.trim();
+        payload.deliveryInstructions = instructions.trim();
       }
 
       const res = await api.post<Order>('/orders/customer', payload);
@@ -97,7 +132,18 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
     navigate('/customer/orders');
   };
 
-  const slotsByDate = slots.reduce<Record<string, PickupSlot[]>>((acc, slot) => {
+  // Filter slots to only include TODAY (after current time) and TOMORROW (all)
+  const filteredSlots = slots.filter((slot) => {
+    if (slot.slotDate === todayStr) {
+      return slot.startTime.substring(0, 5) > currentTimeStr;
+    }
+    if (slot.slotDate === tomorrowStr) {
+      return true;
+    }
+    return false;
+  });
+
+  const slotsByDate = filteredSlots.reduce<Record<string, PickupSlot[]>>((acc, slot) => {
     acc[slot.slotDate] = acc[slot.slotDate] || [];
     acc[slot.slotDate].push(slot);
     return acc;
@@ -206,45 +252,50 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
 
                 {isLoadingSlots ? (
                   <p className="text-xs text-gray-500 py-4 text-center">Loading available slots...</p>
-                ) : slots.length === 0 ? (
-                  <p className="text-xs text-amber-700 py-4 text-center">No available slots for today. Try home delivery.</p>
+                ) : Object.keys(slotsByDate).length === 0 ? (
+                  <p className="text-xs text-amber-700 py-4 text-center">No available pickup slots for today or tomorrow.</p>
                 ) : (
                   <div className="space-y-4 max-h-56 overflow-y-auto pr-1">
-                    {Object.entries(slotsByDate).map(([date, dateSlots]) => (
-                      <div key={date}>
-                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
-                          Date: {date}
-                        </p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {dateSlots.map((slot) => {
-                            const isSelected = selectedSlotId === slot.id;
-                            const isAvailable = slot.available;
-                            return (
-                              <button
-                                key={slot.id}
-                                type="button"
-                                disabled={!isAvailable}
-                                onClick={() => setSelectedSlotId(slot.id)}
-                                className={`p-2.5 rounded-xl border text-left transition ${
-                                  isSelected
-                                    ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-xs'
-                                    : isAvailable
-                                    ? 'border-gray-200 hover:border-emerald-300 bg-white text-gray-800'
-                                    : 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed'
-                                }`}
-                              >
-                                <p className="text-xs font-bold">
-                                  {slot.startTime.substring(0, 5)} - {slot.endTime.substring(0, 5)}
-                                </p>
-                                <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
-                                  {isAvailable ? `${slot.remainingCapacity} slots left` : 'Fully booked'}
-                                </p>
-                              </button>
-                            );
-                          })}
+                    {Object.entries(slotsByDate).map(([date, dateSlots]) => {
+                      const dateLabel = date === todayStr ? `Today (${date})` : date === tomorrowStr ? `Tomorrow (${date})` : `Date: ${date}`;
+
+                      return (
+                        <div key={date}>
+                          <p className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            {dateLabel}
+                          </p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {dateSlots.map((slot) => {
+                              const isSelected = selectedSlotId === slot.id;
+                              const isAvailable = slot.available;
+                              return (
+                                <button
+                                  key={slot.id}
+                                  type="button"
+                                  disabled={!isAvailable}
+                                  onClick={() => setSelectedSlotId(slot.id)}
+                                  className={`p-2.5 rounded-xl border text-left transition ${
+                                    isSelected
+                                      ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-xs'
+                                      : isAvailable
+                                      ? 'border-gray-200 hover:border-emerald-300 bg-white text-gray-800'
+                                      : 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed'
+                                  }`}
+                                >
+                                  <p className="text-xs font-bold">
+                                    {slot.startTime.substring(0, 5)} - {slot.endTime.substring(0, 5)}
+                                  </p>
+                                  <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
+                                    {isAvailable ? `${slot.remainingCapacity} slots left` : 'Fully booked'}
+                                  </p>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -272,6 +323,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       className="w-full mt-1 p-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-emerald-500"
+                      placeholder="City (e.g. Mumbai)"
                     />
                   </div>
                   <div>
@@ -281,6 +333,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value)}
                       className="w-full mt-1 p-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-emerald-500"
+                      placeholder="6-digit Pincode (e.g. 400001)"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -290,6 +343,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full mt-1 p-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-emerald-500"
+                      placeholder="10-digit mobile number (e.g. +91 98765 00004)"
                     />
                   </div>
                 </div>
@@ -300,10 +354,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               <label className="text-xs font-bold text-gray-800">Select Payment Method</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { method: 'UPI', label: 'UPI / QR Code', icon: QrCode, available: false, badge: 'Available Soon' },
-                  { method: 'CARD', label: 'Card Payment', icon: CreditCard, available: false, badge: 'Available Soon' },
-                  { method: 'NET_BANKING', label: 'Net Banking', icon: Banknote, available: false, badge: 'Available Soon' },
                   { method: 'CASH_ON_DELIVERY', label: 'Pay on Handover', icon: ShieldCheck, available: true, badge: null },
+                  { method: 'UPI', label: 'UPI / QR Code', icon: QrCode, available: false, badge: 'coming soon' },
+                  { method: 'CARD', label: 'Card Payment', icon: CreditCard, available: false, badge: 'coming soon' },
+                  { method: 'NET_BANKING', label: 'Net Banking', icon: Banknote, available: false, badge: 'coming soon' },
                 ].map(({ method, label, icon: Icon, available, badge }) => (
                   <button
                     key={method}
@@ -314,38 +368,23 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                         setPaymentMethod(method as PaymentMethod);
                       }
                     }}
-                    className={`p-3 rounded-xl border text-center flex flex-col items-center justify-center space-y-1.5 transition ${
+                    className={`p-3 rounded-xl border text-center flex flex-col items-center justify-center space-y-1 transition ${
                       paymentMethod === method
                         ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold shadow-xs'
                         : available
-                        ? 'border-gray-200 text-gray-600 hover:border-gray-300'
-                        : 'border-gray-200 bg-gray-50/80 text-gray-400 opacity-60 cursor-not-allowed'
+                        ? 'border-gray-200 text-gray-700 hover:border-gray-300 bg-white'
+                        : 'border-gray-200 bg-gray-50/70 text-gray-400 opacity-60 cursor-not-allowed'
                     }`}
                   >
                     <Icon className={`w-4 h-4 ${available ? 'text-emerald-700' : 'text-gray-400'}`} />
-                    <span className="text-[11px] leading-tight">{label}</span>
+                    <span className="text-[11px] leading-tight font-medium">{label}</span>
                     {badge && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold bg-amber-50 text-amber-700 border border-amber-200/70">
+                      <span className="text-[9px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
                         {badge}
                       </span>
                     )}
                   </button>
                 ))}
-              </div>
-
-              <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-left">
-                <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div className="text-xs space-y-0.5 text-amber-900">
-                  <p className="font-semibold text-amber-900">
-                    <span className="inline-block px-1.5 py-0.5 mr-1.5 rounded bg-amber-200/70 text-amber-900 font-bold text-[10px] uppercase tracking-wide">
-                      Currently Unavailable
-                    </span>
-                    Online payment is temporarily unavailable. Please use Cash on Delivery.
-                  </p>
-                  <p className="text-[11px] text-amber-800">
-                    <span className="font-semibold">Available Soon:</span> UPI, Card and Net Banking options will be available soon.
-                  </p>
-                </div>
               </div>
             </div>
 

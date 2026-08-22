@@ -140,4 +140,26 @@ class OrderServiceTests {
         Product restocked = productRepository.findById(product.getId()).orElseThrow();
         assertEquals(initialStock, restocked.getStockQuantity());
     }
+
+    @Autowired
+    private com.edu.Mini_D_Mart.order.service.PickupSlotService pickupSlotService;
+
+    @Test
+    @DisplayName("Should return available slots only for today and tomorrow and filter past slots for today")
+    void testGetAvailableSlotsTodayAndTomorrow() {
+        java.time.ZoneId zoneId = java.time.ZoneId.of("Asia/Kolkata");
+        java.time.LocalDate today = java.time.LocalDate.now(zoneId);
+        java.time.LocalDate tomorrow = today.plusDays(1);
+        java.time.LocalTime now = java.time.LocalTime.now(zoneId);
+
+        List<com.edu.Mini_D_Mart.order.dto.PickupSlotResponse> availableSlots = pickupSlotService.getAvailableSlots();
+
+        assertNotNull(availableSlots);
+        for (var slot : availableSlots) {
+            assertTrue(slot.slotDate().equals(today) || slot.slotDate().equals(tomorrow));
+            if (slot.slotDate().equals(today)) {
+                assertTrue(slot.startTime().isAfter(now));
+            }
+        }
+    }
 }
