@@ -48,13 +48,13 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery, onSearchChange }) => {
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-xs">
-      <div className="bg-emerald-800 text-white text-xs py-1.5 px-4">
+      <div className="bg-emerald-800 text-white text-[11px] sm:text-xs py-1.5 px-3 sm:px-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <span className="bg-yellow-400 text-emerald-950 font-bold px-2 py-0.5 rounded text-[10px] tracking-wider uppercase">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 truncate">
+            <span className="bg-yellow-400 text-emerald-950 font-black px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] tracking-wider uppercase shrink-0">
               Free Delivery
             </span>
-            <span>On grocery orders above ₹500 | Express Store Pickup Available</span>
+            <span className="truncate text-[10px] sm:text-xs">On orders ₹500+ | Express Store Pickup Available</span>
           </div>
           <div className="hidden sm:flex items-center space-x-4 text-[11px] text-emerald-200">
             <span>Customer Care: +91 8000-DMART</span>
@@ -64,16 +64,16 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery, onSearchChange }) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          <Link to={getHomeLink()} className="flex items-center space-x-2.5 flex-shrink-0 group" title="Mini D-Mart Home">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md group-hover:bg-emerald-700 transition">
-              <Store className="w-6 h-6" />
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4">
+          <Link to={getHomeLink()} className="flex items-center space-x-2 flex-shrink-0 group" title="Mini D-Mart Home">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md group-hover:bg-emerald-700 transition">
+              <Store className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <span className="text-2xl font-black tracking-tight text-emerald-700">Mini</span>
-              <span className="text-2xl font-black tracking-tight text-yellow-500">D-Mart</span>
-              <span className="block text-[10px] text-gray-500 tracking-wider font-bold">GROCERY & FRESH MART</span>
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-emerald-700">Mini</span>
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-yellow-500">D-Mart</span>
+              <span className="block text-[8px] sm:text-[10px] text-gray-500 tracking-wider font-bold">GROCERY & FRESH MART</span>
             </div>
           </Link>
 
@@ -92,7 +92,7 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery, onSearchChange }) => {
             </div>
           )}
 
-          <div className="flex items-center space-x-2.5 ml-auto">
+          <div className="flex items-center space-x-2 sm:space-x-2.5 ml-auto">
             {user && user.role === 'STAFF' && (
               <Link
                 to="/staff"
@@ -247,6 +247,21 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery, onSearchChange }) => {
             )}
           </div>
         </div>
+
+        {onSearchChange && isCustomerOrGuest && (
+          <div className="pb-2.5 md:hidden">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search fresh items, staples, dairy..."
+                value={searchQuery || ''}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full pl-9 pr-4 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+              />
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2" />
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

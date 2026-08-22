@@ -124,14 +124,14 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
         </div>
       </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="mb-6 overflow-x-auto pb-2 scrollbar-none">
-          <div className="flex items-center space-x-2">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-4 sm:mt-8">
+        <div className="mb-4 sm:mb-6 overflow-x-auto pb-1.5 scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 w-max">
             <button
               onClick={() => setSelectedCategoryId(null)}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${
+              className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold transition whitespace-nowrap ${
                 selectedCategoryId === null
-                  ? 'bg-emerald-600 text-white shadow-sm'
+                  ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
@@ -141,9 +141,9 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategoryId(cat.id)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap flex items-center space-x-1.5 ${
+                className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold transition whitespace-nowrap flex items-center space-x-1.5 ${
                   selectedCategoryId === cat.id
-                    ? 'bg-emerald-600 text-white shadow-sm'
+                    ? 'bg-emerald-600 text-white shadow-xs'
                     : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                 }`}
               >
@@ -153,8 +153,8 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 bg-white p-3.5 rounded-2xl border border-gray-200 shadow-2xs">
-          <div className="flex items-center space-x-3 text-xs text-gray-700">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-6 bg-white p-2.5 sm:p-3.5 rounded-2xl border border-gray-200 shadow-2xs">
+          <div className="flex items-center justify-between sm:justify-start space-x-3 text-xs text-gray-700">
             <label className="flex items-center space-x-1.5 cursor-pointer font-medium">
               <input
                 type="checkbox"
@@ -165,13 +165,13 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
               <span>In Stock Only</span>
             </label>
             {searchQuery && (
-              <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md font-semibold text-[11px]">
+              <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md font-semibold text-[11px] truncate max-w-[180px]">
                 Search: "{searchQuery}"
               </span>
             )}
           </div>
 
-          <div className="flex items-center space-x-2 text-xs">
+          <div className="flex items-center justify-between sm:justify-end space-x-2 text-xs">
             <span className="text-gray-500 font-medium">Sort by:</span>
             <select
               value={sortBy}
@@ -187,10 +187,10 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 h-72 animate-pulse flex flex-col justify-between">
-                <div className="bg-gray-200 rounded-xl h-36 w-full" />
+              <div key={i} className="bg-white rounded-2xl border border-gray-200 p-3 sm:p-4 h-64 sm:h-72 animate-pulse flex flex-col justify-between">
+                <div className="bg-gray-200 rounded-xl h-28 sm:h-36 w-full" />
                 <div className="space-y-2 mt-3">
                   <div className="bg-gray-200 h-3 w-3/4 rounded" />
                   <div className="bg-gray-200 h-4 w-1/2 rounded" />
@@ -199,11 +199,11 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
             ))}
           </div>
         ) : sortedProducts.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-gray-200 shadow-2xs space-y-3">
-            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto text-gray-400">
-              <ShoppingCart className="w-8 h-8" />
+          <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-gray-200 shadow-2xs space-y-3">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto text-gray-400">
+              <ShoppingCart className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900">No products found</h3>
+            <h3 className="text-base sm:text-lg font-bold text-gray-900">No products found</h3>
             <p className="text-xs text-gray-500 max-w-sm mx-auto">
               We couldn't find any products matching your filters or search keywords. Try clearing the search or category filter.
             </p>
@@ -218,7 +218,7 @@ const HomePage: React.FC<HomePageProps> = ({ searchQuery }) => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
             {sortedProducts.map((product) => (
               <ProductCard
                 key={product.id}
