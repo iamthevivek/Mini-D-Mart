@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Store, Truck, CreditCard, QrCode, Banknote, ShieldCheck, CheckCircle2, Clock, MapPin } from 'lucide-react';
+import { X, Store, Truck, CreditCard, QrCode, Banknote, ShieldCheck, CheckCircle2, Clock, MapPin, Info } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
@@ -17,7 +17,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>('STORE_PICKUP');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH_ON_DELIVERY');
   const [slots, setSlots] = useState<PickupSlot[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
@@ -300,25 +300,52 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               <label className="text-xs font-bold text-gray-800">Select Payment Method</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { method: 'UPI', label: 'UPI / QR Code', icon: QrCode },
-                  { method: 'CARD', label: 'Card Payment', icon: CreditCard },
-                  { method: 'NET_BANKING', label: 'Net Banking', icon: Banknote },
-                  { method: 'CASH_ON_DELIVERY', label: 'Pay on Handover', icon: ShieldCheck },
-                ].map(({ method, label, icon: Icon }) => (
+                  { method: 'UPI', label: 'UPI / QR Code', icon: QrCode, available: false, badge: 'Available Soon' },
+                  { method: 'CARD', label: 'Card Payment', icon: CreditCard, available: false, badge: 'Available Soon' },
+                  { method: 'NET_BANKING', label: 'Net Banking', icon: Banknote, available: false, badge: 'Available Soon' },
+                  { method: 'CASH_ON_DELIVERY', label: 'Pay on Handover', icon: ShieldCheck, available: true, badge: null },
+                ].map(({ method, label, icon: Icon, available, badge }) => (
                   <button
                     key={method}
                     type="button"
-                    onClick={() => setPaymentMethod(method as PaymentMethod)}
+                    disabled={!available}
+                    onClick={() => {
+                      if (available) {
+                        setPaymentMethod(method as PaymentMethod);
+                      }
+                    }}
                     className={`p-3 rounded-xl border text-center flex flex-col items-center justify-center space-y-1.5 transition ${
                       paymentMethod === method
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold shadow-xs'
+                        : available
+                        ? 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        : 'border-gray-200 bg-gray-50/80 text-gray-400 opacity-60 cursor-not-allowed'
                     }`}
                   >
-                    <Icon className="w-4 h-4 text-emerald-700" />
-                    <span className="text-[11px]">{label}</span>
+                    <Icon className={`w-4 h-4 ${available ? 'text-emerald-700' : 'text-gray-400'}`} />
+                    <span className="text-[11px] leading-tight">{label}</span>
+                    {badge && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold bg-amber-50 text-amber-700 border border-amber-200/70">
+                        {badge}
+                      </span>
+                    )}
                   </button>
                 ))}
+              </div>
+
+              <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-left">
+                <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-xs space-y-0.5 text-amber-900">
+                  <p className="font-semibold text-amber-900">
+                    <span className="inline-block px-1.5 py-0.5 mr-1.5 rounded bg-amber-200/70 text-amber-900 font-bold text-[10px] uppercase tracking-wide">
+                      Currently Unavailable
+                    </span>
+                    Online payment is temporarily unavailable. Please use Cash on Delivery.
+                  </p>
+                  <p className="text-[11px] text-amber-800">
+                    <span className="font-semibold">Available Soon:</span> UPI, Card and Net Banking options will be available soon.
+                  </p>
+                </div>
               </div>
             </div>
 
