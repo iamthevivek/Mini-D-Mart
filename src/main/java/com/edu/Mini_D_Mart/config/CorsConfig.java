@@ -32,6 +32,9 @@ public class CorsConfig {
                         .filter(origin -> !origin.isBlank())
                         .toList()
         );
+        configuration.addAllowedOriginPattern("https://*.vercel.app");
+        configuration.addAllowedOriginPattern("https://*.*.vercel.app");
+        configuration.addAllowedOriginPattern("http://localhost:*");
 
         configuration.setAllowedMethods(
                 Arrays.asList(
