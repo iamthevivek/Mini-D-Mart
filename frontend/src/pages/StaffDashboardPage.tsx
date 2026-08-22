@@ -16,6 +16,7 @@ const StaffDashboardPage: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState(false);
 
   const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
+  const [updatingOrderId, setUpdatingOrderId] = useState<number | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -46,13 +47,16 @@ const StaffDashboardPage: React.FC = () => {
 
   const handleUpdateStatus = async (orderId: number, nextStatus: OrderStatus) => {
     try {
+      setUpdatingOrderId(orderId);
       await api.patch(`/orders/staff/${orderId}/status`, {
         status: nextStatus,
         staffNotes: `Status advanced to ${nextStatus} by staff`,
       });
-      fetchData();
+      await fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to update order status');
+      alert(err.response?.data?.message || 'Failed to update order status. Please ensure server is available.');
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
@@ -262,52 +266,58 @@ const StaffDashboardPage: React.FC = () => {
                       <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-2">
                         {order.status === 'PLACED' && (
                           <button
+                            disabled={updatingOrderId === order.id}
                             onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
-                            className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition"
+                            className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition"
                           >
-                            Confirm Order
+                            {updatingOrderId === order.id ? 'Updating...' : 'Confirm Order'}
                           </button>
                         )}
 
                         {(order.status === 'PLACED' || order.status === 'CONFIRMED') && (
                           <button
+                            disabled={updatingOrderId === order.id}
                             onClick={() => handleUpdateStatus(order.id, 'PREPARING')}
-                            className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition"
+                            className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition"
                           >
-                            Start Packing (Preparing)
+                            {updatingOrderId === order.id ? 'Updating...' : 'Start Packing (Preparing)'}
                           </button>
                         )}
 
                         {order.status === 'PREPARING' && isPickup && (
                           <button
+                            disabled={updatingOrderId === order.id}
                             onClick={() => handleUpdateStatus(order.id, 'READY_FOR_PICKUP')}
-                            className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition"
+                            className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition"
                           >
-                            Mark Ready for Pickup
+                            {updatingOrderId === order.id ? 'Updating...' : 'Mark Ready for Pickup'}
                           </button>
                         )}
 
                         {order.status === 'PREPARING' && !isPickup && (
                           <button
+                            disabled={updatingOrderId === order.id}
                             onClick={() => handleUpdateStatus(order.id, 'OUT_FOR_DELIVERY')}
-                            className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition"
+                            className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition"
                           >
-                            Dispatch for Delivery
+                            {updatingOrderId === order.id ? 'Updating...' : 'Dispatch for Delivery'}
                           </button>
                         )}
 
                         {order.status === 'OUT_FOR_DELIVERY' && (
                           <button
+                            disabled={updatingOrderId === order.id}
                             onClick={() => handleUpdateStatus(order.id, 'DELIVERED')}
-                            className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition"
+                            className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition"
                           >
-                            Mark Delivered
+                            {updatingOrderId === order.id ? 'Updating...' : 'Mark Delivered'}
                           </button>
                         )}
 
                         <button
+                          disabled={updatingOrderId === order.id}
                           onClick={() => setCancellingOrderId(order.id)}
-                          className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl text-xs font-bold border border-red-200 transition"
+                          className="px-3 py-2 bg-red-50 hover:bg-red-100 disabled:opacity-50 text-red-700 rounded-xl text-xs font-bold border border-red-200 transition"
                           title="Cancel Order"
                         >
                           Cancel Order
