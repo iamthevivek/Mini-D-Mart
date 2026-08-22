@@ -1,21 +1,16 @@
-# ==========================================
-# Mini D-Mart Spring Boot Backend Dockerfile
-# ==========================================
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
 
-# Copy Maven wrapper & pom.xml
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
+RUN chmod +x mvnw
 RUN ./mvnw dependency:go-offline -B || true
 
-# Copy source code and build package
 COPY src ./src
 RUN ./mvnw package -DskipTests=true -B
 
-# Runtime Image
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
