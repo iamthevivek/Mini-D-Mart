@@ -17,6 +17,7 @@ Going far beyond a basic CRUD demo, Mini D-Mart delivers an enterprise-grade omn
 - **Store Staff** have a dedicated **Operations Console** featuring a live **Order Preparation Queue (KOT packing slip style)**, one-click order progression, a **Store Pickup OTP Verification Tool**, and a **Returns Inspection Hub**.
 - **Managers & Administrators** have access to executive analytics KPIs (revenue, order volume, return rate), inventory stock control with instant restock and low-stock alerts, pickup slot capacity configuration, user RBAC privilege management, and tamper-evident audit logging.
 
+Live Link :- https://mini-d-mart-la3w.onrender.com
 ---
 
 ## 🏗️ 2. Architecture & Tech Stack
