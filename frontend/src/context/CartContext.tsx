@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/client';
 import { CartSummary } from '../types';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 
 interface CartContextType {
   cart: CartSummary | null;
@@ -22,6 +23,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const { success, error, info } = useToast();
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -37,7 +39,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.get<CartSummary>('/cart');
       setCart(res.data);
     } catch {
-
+      // Ignored if unauthenticated
     } finally {
       setIsLoading(false);
     }
@@ -56,8 +58,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       const res = await api.post<CartSummary>('/cart', { productId, quantity });
       setCart(res.data);
+      success('Added to Cart', 'Item successfully added to your shopping cart');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to add item to cart');
+      error('Cart Error', err.response?.data?.message || 'Failed to add item to cart');
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +72,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.put<CartSummary>(`/cart/${cartItemId}`, { quantity });
       setCart(res.data);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to update quantity');
+      error('Quantity Error', err.response?.data?.message || 'Failed to update quantity');
     } finally {
       setIsLoading(false);
     }
@@ -80,8 +83,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       const res = await api.delete<CartSummary>(`/cart/${cartItemId}`);
       setCart(res.data);
+      info('Item Removed', 'Item removed from your cart');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to remove item');
+      error('Remove Error', err.response?.data?.message || 'Failed to remove item');
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +96,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await api.delete('/cart');
       setCart(null);
     } catch {
-
+      // Cart cleared
     }
   };
 

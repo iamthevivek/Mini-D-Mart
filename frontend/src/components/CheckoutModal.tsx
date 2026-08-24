@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Store, Truck, CreditCard, QrCode, Banknote, ShieldCheck, CheckCircle2, Clock, MapPin, Info } from 'lucide-react';
+import {
+  X,
+  Store,
+  Truck,
+  CreditCard,
+  QrCode,
+  Banknote,
+  ShieldCheck,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  Sparkles,
+  ArrowRight,
+  ChevronLeft,
+  Calendar,
+  AlertCircle,
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import api from '../api/client';
 import { PickupSlot, FulfillmentType, PaymentMethod, Order } from '../types';
 
@@ -14,8 +31,10 @@ interface CheckoutModalProps {
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const { cart, clearCart } = useCart();
   const { user } = useAuth();
+  const { success, error } = useToast();
   const navigate = useNavigate();
 
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [fulfillmentType, setFulfillmentType] = useState<FulfillmentType>('STORE_PICKUP');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH_ON_DELIVERY');
   const [slots, setSlots] = useState<PickupSlot[]>([]);
@@ -25,9 +44,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
 
   const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [pincode, setPincode] = useState('');
-  const [phone, setPhone] = useState(user?.phone || '');
+  const [city, setCity] = useState('Mumbai');
+  const [pincode, setPincode] = useState('400001');
+  const [phone, setPhone] = useState(user?.phone || '+91 98765 00004');
   const [instructions, setInstructions] = useState('');
 
   const getLocalDateString = (d: Date = new Date()) => {
@@ -50,6 +69,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
+      setStep(1);
+      setCompletedOrder(null);
       fetchSlots();
     }
   }, [isOpen]);
@@ -80,7 +101,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
         setSelectedSlotId(validSlots[0].id);
       }
     } catch {
-
+      // Ignored
     } finally {
       setIsLoadingSlots(false);
     }
@@ -98,14 +119,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
 
       if (fulfillmentType === 'STORE_PICKUP') {
         if (!selectedSlotId) {
-          alert('Please select a pickup time slot');
+          error('Slot Required', 'Please select a pickup time slot');
           setIsSubmitting(false);
           return;
         }
         payload.pickupSlotId = selectedSlotId;
       } else {
         if (!address.trim() || !city.trim() || !pincode.trim() || !phone.trim()) {
-          alert('Please fill out all required home delivery address fields');
+          error('Address Required', 'Please fill in all delivery address details');
           setIsSubmitting(false);
           return;
         }
@@ -118,9 +139,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
 
       const res = await api.post<Order>('/orders/customer', payload);
       setCompletedOrder(res.data);
+      setStep(4);
       clearCart();
+      success('Order Placed Successfully!', `Order reference #${res.data.orderNumber}`);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to place order. Please try again.');
+      error('Order Failed', err.response?.data?.message || 'Failed to place order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -150,120 +173,117 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   }, {});
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative border border-gray-100 my-8">
-        {!completedOrder && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-fade-in overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl relative border border-slate-200 dark:border-slate-800 my-8 animate-scale-in">
+        {step !== 4 && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition"
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            aria-label="Close checkout"
           >
             <X className="w-5 h-5" />
           </button>
         )}
 
-        {completedOrder ? (
-          <div className="text-center py-6 space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-            <h2 className="text-2xl font-black text-gray-900">Order Confirmed!</h2>
-            <p className="text-sm text-gray-600">
-              Thank you, <span className="font-bold text-gray-900">{user?.name}</span>! Your order has been placed successfully.
-            </p>
-
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 max-w-md mx-auto text-left space-y-3">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-500">Order Reference:</span>
-                <span className="font-mono font-bold text-emerald-800 text-sm">{completedOrder.orderNumber}</span>
+        {/* Step Indicator Header */}
+        {step !== 4 && (
+          <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100">
+                  {step === 1 && 'Fulfillment Method'}
+                  {step === 2 && 'Payment Option'}
+                  {step === 3 && 'Order Review & Place'}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Step {step} of 3</p>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-500">Total Paid:</span>
-                <span className="font-black text-gray-900 text-base">₹{completedOrder.totalAmount.toFixed(2)}</span>
+              <div className="flex items-center space-x-1.5">
+                {[1, 2, 3].map((s) => (
+                  <div
+                    key={s}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      step === s
+                        ? 'w-8 bg-emerald-600 dark:bg-emerald-500'
+                        : step > s
+                        ? 'w-4 bg-emerald-300 dark:bg-emerald-800'
+                        : 'w-4 bg-slate-200 dark:bg-slate-700'
+                    }`}
+                  />
+                ))}
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-500">Fulfillment:</span>
-                <span className="font-bold text-gray-800">
-                  {completedOrder.fulfillmentType === 'STORE_PICKUP' ? 'Store Pickup' : 'Home Delivery'}
-                </span>
-              </div>
-
-              {completedOrder.fulfillmentType === 'STORE_PICKUP' && completedOrder.pickupVerificationCode && (
-                <div className="pt-3 border-t border-emerald-200 text-center">
-                  <p className="text-xs text-emerald-800 font-semibold mb-1">Store Pickup Verification OTP / PIN:</p>
-                  <span className="inline-block bg-white text-emerald-900 text-2xl font-mono font-black tracking-widest px-4 py-2 rounded-xl border border-emerald-300 shadow-xs">
-                    {completedOrder.pickupVerificationCode}
-                  </span>
-                  <p className="text-[11px] text-emerald-700 mt-1">Show this OTP at the Mini D-Mart counter to collect your order.</p>
-                </div>
-              )}
-            </div>
-
-            <div className="pt-4 flex justify-center space-x-3">
-              <button
-                onClick={handleFinish}
-                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md transition"
-              >
-                Track Live Order Status
-              </button>
             </div>
           </div>
-        ) : (
-          <div>
-            <h2 className="text-xl font-black text-gray-900 mb-1">Fast Checkout</h2>
-            <p className="text-xs text-gray-500 mb-6">Choose fulfillment method and payment options</p>
+        )}
 
-            <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* Step 1: Fulfillment */}
+        {step === 1 && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setFulfillmentType('STORE_PICKUP')}
-                className={`flex items-center justify-center space-x-2 p-3.5 rounded-2xl border-2 font-bold text-xs transition ${
+                className={`flex items-start space-x-3 p-4 rounded-2xl border-2 text-left transition ${
                   fulfillmentType === 'STORE_PICKUP'
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-xs'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                    ? 'border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 shadow-xs'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900'
                 }`}
               >
-                <Store className="w-4 h-4" />
-                <span>Express Store Pickup (FREE)</span>
+                <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 shrink-0">
+                  <Store className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Express Store Pickup</span>
+                    <span className="bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded">FREE</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Collect at counter in 15 mins with 6-digit OTP PIN</p>
+                </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setFulfillmentType('HOME_DELIVERY')}
-                className={`flex items-center justify-center space-x-2 p-3.5 rounded-2xl border-2 font-bold text-xs transition ${
+                className={`flex items-start space-x-3 p-4 rounded-2xl border-2 text-left transition ${
                   fulfillmentType === 'HOME_DELIVERY'
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-xs'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                    ? 'border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 shadow-xs'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900'
                 }`}
               >
-                <Truck className="w-4 h-4" />
-                <span>Home Delivery</span>
+                <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shrink-0">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Doorstep Home Delivery</span>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Direct express delivery to your home address</p>
+                </div>
               </button>
             </div>
 
             {fulfillmentType === 'STORE_PICKUP' ? (
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-200 dark:border-slate-700/80">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-gray-800 flex items-gap-1.5">
-                    <Clock className="w-4 h-4 text-emerald-600 mr-1" />
-                    Select Store Pickup Slot:
+                  <label className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>Select Store Pickup Time Slot:</span>
                   </label>
-                  <span className="text-[11px] text-gray-500">Ready in 15 mins</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Ready in 15 mins</span>
                 </div>
 
                 {isLoadingSlots ? (
-                  <p className="text-xs text-gray-500 py-4 text-center">Loading available slots...</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 py-4 text-center">Loading available slots...</p>
                 ) : Object.keys(slotsByDate).length === 0 ? (
-                  <p className="text-xs text-amber-700 py-4 text-center">No available pickup slots for today or tomorrow.</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 py-4 text-center">No available pickup slots for today or tomorrow.</p>
                 ) : (
-                  <div className="space-y-4 max-h-56 overflow-y-auto pr-1">
+                  <div className="space-y-3.5 max-h-52 overflow-y-auto pr-1">
                     {Object.entries(slotsByDate).map(([date, dateSlots]) => {
-                      const dateLabel = date === todayStr ? `Today (${date})` : date === tomorrowStr ? `Tomorrow (${date})` : `Date: ${date}`;
+                      const dateLabel =
+                        date === todayStr ? `Today (${date})` : date === tomorrowStr ? `Tomorrow (${date})` : `Date: ${date}`;
 
                       return (
                         <div key={date}>
-                          <p className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            {dateLabel}
+                          <p className="text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>{dateLabel}</span>
                           </p>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {dateSlots.map((slot) => {
@@ -279,14 +299,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                                     isSelected
                                       ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-xs'
                                       : isAvailable
-                                      ? 'border-gray-200 hover:border-emerald-300 bg-white text-gray-800'
-                                      : 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed'
+                                      ? 'border-slate-200 dark:border-slate-700 hover:border-emerald-400 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200'
+                                      : 'border-slate-100 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/40 text-slate-400 cursor-not-allowed'
                                   }`}
                                 >
                                   <p className="text-xs font-bold">
                                     {slot.startTime.substring(0, 5)} - {slot.endTime.substring(0, 5)}
                                   </p>
-                                  <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
+                                  <p className={`text-[10px] mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
                                     {isAvailable ? `${slot.remainingCapacity} slots left` : 'Fully booked'}
                                   </p>
                                 </button>
@@ -300,117 +320,272 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                 )}
               </div>
             ) : (
-              <div className="space-y-3 mb-6 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                <h4 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-emerald-600" />
-                  Delivery Address & Contact
+              <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-200 dark:border-slate-700/80">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Delivery Address & Contact Details</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="sm:col-span-2">
-                    <label className="text-[11px] font-bold text-gray-700">Street Address</label>
+                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">Street Address</label>
                     <input
                       type="text"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full mt-1 p-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-emerald-500"
+                      className="w-full mt-1 p-2 text-xs border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-emerald-500"
                       placeholder="House/Flat No, Apartment, Street"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-gray-700">City</label>
+                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">City</label>
                     <input
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full mt-1 p-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-emerald-500"
+                      className="w-full mt-1 p-2 text-xs border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-emerald-500"
                       placeholder="City (e.g. Mumbai)"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-gray-700">Pincode</label>
+                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">Pincode</label>
                     <input
                       type="text"
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value)}
-                      className="w-full mt-1 p-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-emerald-500"
-                      placeholder="6-digit Pincode (e.g. 400001)"
+                      className="w-full mt-1 p-2 text-xs border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-emerald-500"
+                      placeholder="Pincode (e.g. 400001)"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="text-[11px] font-bold text-gray-700">Contact Phone</label>
+                    <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">Contact Phone</label>
                     <input
                       type="text"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full mt-1 p-2 text-xs border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-emerald-500"
-                      placeholder="10-digit mobile number (e.g. +91 98765 00004)"
+                      className="w-full mt-1 p-2 text-xs border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-emerald-500"
+                      placeholder="10-digit mobile number"
                     />
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="space-y-2 mb-6">
-              <label className="text-xs font-bold text-gray-800">Select Payment Method</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="pt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center space-x-1.5"
+              >
+                <span>Continue to Payment</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Payment Method */}
+        {step === 2 && (
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-900 dark:text-slate-100 block">Choose Payment Method</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { method: 'CASH_ON_DELIVERY', label: 'Pay on Handover', icon: ShieldCheck, available: true, badge: null },
-                  { method: 'UPI', label: 'UPI / QR Code', icon: QrCode, available: false, badge: 'coming soon' },
-                  { method: 'CARD', label: 'Card Payment', icon: CreditCard, available: false, badge: 'coming soon' },
-                  { method: 'NET_BANKING', label: 'Net Banking', icon: Banknote, available: false, badge: 'coming soon' },
-                ].map(({ method, label, icon: Icon, available, badge }) => (
+                  {
+                    method: 'CASH_ON_DELIVERY',
+                    label: 'Pay on Handover / Delivery',
+                    desc: 'Cash or Card swipe at the store counter or doorstep',
+                    icon: ShieldCheck,
+                    available: true,
+                  },
+                  {
+                    method: 'UPI',
+                    label: 'UPI QR Code / Instant Pay',
+                    desc: 'Scan QR with Google Pay, PhonePe, Paytm',
+                    icon: QrCode,
+                    available: true,
+                  },
+                  {
+                    method: 'CARD',
+                    label: 'Credit / Debit Card',
+                    desc: 'Visa, MasterCard, RuPay (Test mode)',
+                    icon: CreditCard,
+                    available: true,
+                  },
+                  {
+                    method: 'NET_BANKING',
+                    label: 'Net Banking',
+                    desc: 'HDFC, ICICI, SBI, Axis (Test mode)',
+                    icon: Banknote,
+                    available: true,
+                  },
+                ].map(({ method, label, desc, icon: Icon, available }) => (
                   <button
                     key={method}
                     type="button"
-                    disabled={!available}
-                    onClick={() => {
-                      if (available) {
-                        setPaymentMethod(method as PaymentMethod);
-                      }
-                    }}
-                    className={`p-3 rounded-xl border text-center flex flex-col items-center justify-center space-y-1 transition ${
+                    onClick={() => setPaymentMethod(method as PaymentMethod)}
+                    className={`p-4 rounded-2xl border-2 text-left flex items-start space-x-3 transition ${
                       paymentMethod === method
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold shadow-xs'
-                        : available
-                        ? 'border-gray-200 text-gray-700 hover:border-gray-300 bg-white'
-                        : 'border-gray-200 bg-gray-50/70 text-gray-400 opacity-60 cursor-not-allowed'
+                        ? 'border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 shadow-xs'
+                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${available ? 'text-emerald-700' : 'text-gray-400'}`} />
-                    <span className="text-[11px] leading-tight font-medium">{label}</span>
-                    {badge && (
-                      <span className="text-[9px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                        {badge}
-                      </span>
-                    )}
+                    <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 shrink-0">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{label}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{desc}</p>
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-              <div>
-                <span className="text-xs text-gray-500 block">Total Amount to Pay:</span>
-                <span className="text-xl font-black text-emerald-800">₹{cart?.totalAmount.toFixed(2) || '0.00'}</span>
+            {paymentMethod === 'UPI' && (
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center space-x-4">
+                <div className="w-20 h-20 bg-white p-2 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+                  <QrCode className="w-16 h-16 text-slate-800" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Scan & Pay via UPI</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">UPI ID: <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">minidmart@upi</span></p>
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">Instant order confirmation on payment scan</p>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center space-x-1.5"
+              >
+                <span>Review Order</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Order Review & Confirmation */}
+        {step === 3 && (
+          <div className="space-y-5">
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 space-y-3">
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-slate-200 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">Fulfillment Mode:</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">
+                  {fulfillmentType === 'STORE_PICKUP' ? 'Express Store Pickup (15-min)' : 'Home Delivery'}
+                </span>
               </div>
 
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-800 rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handlePlaceOrder}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Placing Order...' : 'Confirm & Place Order'}
-                </button>
+              <div className="flex justify-between items-center text-xs pb-2 border-b border-slate-200 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">Payment Selected:</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">{paymentMethod.replace(/_/g, ' ')}</span>
               </div>
+
+              <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+                <div className="flex justify-between">
+                  <span>Cart Items ({cart?.totalItems || 0})</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">₹{cart?.subtotal.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Estimated GST (5%)</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">₹{cart?.estimatedTax.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Charges</span>
+                  {cart?.deliveryFee === 0 ? (
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">FREE</span>
+                  ) : (
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">₹{cart?.deliveryFee.toFixed(2) || '0.00'}</span>
+                  )}
+                </div>
+                <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700 text-sm font-black text-slate-900 dark:text-slate-100">
+                  <span>Total Payable:</span>
+                  <span className="text-emerald-700 dark:text-emerald-400 text-base">₹{cart?.totalAmount.toFixed(2) || '0.00'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => setStep(2)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handlePlaceOrder}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition disabled:opacity-50 flex items-center space-x-1.5"
+              >
+                <span>{isSubmitting ? 'Placing Order...' : 'Confirm & Place Order'}</span>
+                <CheckCircle2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Success & Verification Screen */}
+        {step === 4 && completedOrder && (
+          <div className="text-center py-6 space-y-4">
+            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto animate-bounce">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">Order Confirmed!</h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Thank you, <span className="font-bold text-slate-900 dark:text-slate-100">{user?.name}</span>! Your grocery order has been received.
+            </p>
+
+            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-3xl p-5 max-w-md mx-auto text-left space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 dark:text-slate-400">Order Number:</span>
+                <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300 text-sm">{completedOrder.orderNumber}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 dark:text-slate-400">Total Paid / Due:</span>
+                <span className="font-black text-slate-900 dark:text-slate-100 text-base">₹{completedOrder.totalAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 dark:text-slate-400">Fulfillment:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  {completedOrder.fulfillmentType === 'STORE_PICKUP' ? 'Store Pickup' : 'Home Delivery'}
+                </span>
+              </div>
+
+              {completedOrder.fulfillmentType === 'STORE_PICKUP' && completedOrder.pickupVerificationCode && (
+                <div className="pt-3 border-t border-emerald-200 dark:border-emerald-800 text-center">
+                  <p className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold mb-1">Store Pickup 6-Digit OTP / PIN:</p>
+                  <span className="inline-block bg-white dark:bg-slate-900 text-emerald-900 dark:text-emerald-300 text-2xl font-mono font-black tracking-widest px-5 py-2 rounded-2xl border border-emerald-300 dark:border-emerald-700 shadow-sm">
+                    {completedOrder.pickupVerificationCode}
+                  </span>
+                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1.5">
+                    Show this OTP at the OneMart counter to collect your packed order.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-4 flex justify-center space-x-3">
+              <button
+                onClick={handleFinish}
+                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md transition flex items-center space-x-1.5"
+              >
+                <span>Track Live Order Status</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         )}
