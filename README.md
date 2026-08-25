@@ -198,8 +198,3 @@ Execute the test suite covering authentication, stock deduction, slot capacity r
 ```bash
 ./mvnw test
 ```
-
----
-
-## 🤖 9. AI Usage Disclosure
-This project was developed with assistance from Google DeepMind's Antigravity AI coding assistant to accelerate architectural scaffolding, component design, and test coverage while strictly adhering to production software engineering best practices.
