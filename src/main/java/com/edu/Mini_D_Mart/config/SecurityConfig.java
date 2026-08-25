@@ -255,6 +255,11 @@ public class SecurityConfig {
                         .hasAnyRole("MANAGER", "ADMIN")
 
                         .requestMatchers(
+                                "/api/users/profile"
+                        )
+                        .authenticated()
+
+                        .requestMatchers(
                                 "/api/admin/**",
                                 "/api/users/**"
                         )

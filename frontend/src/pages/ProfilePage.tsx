@@ -29,27 +29,47 @@ const ProfilePage: React.FC = () => {
     }
   }, [user]);
 
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>(() => {
+  const getAddressStorageKey = (userId?: number | string) => {
+    return userId ? `onemart_saved_addresses_${userId}` : 'onemart_saved_addresses';
+  };
+
+  const loadAddresses = (): SavedAddress[] => {
+    if (!user) return [];
     try {
-      const saved = localStorage.getItem('onemart_saved_addresses') || localStorage.getItem('minidmart_saved_addresses');
-      return saved
-        ? JSON.parse(saved)
-        : [
-            {
-              id: '1',
-              tag: 'Home',
-              address: 'Flat 402, Sunshine Heights, MG Road',
-              city: 'Mumbai',
-              pincode: '400001',
-              isDefault: true,
-            },
-          ];
+      const key = getAddressStorageKey(user.id);
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            (a: SavedAddress) =>
+              !(
+                a.address === 'Flat 402, Sunshine Heights, MG Road' &&
+                a.city === 'Mumbai' &&
+                a.pincode === '400001'
+              )
+          );
+        }
+      }
+      return [];
     } catch {
       return [];
     }
-  });
+  };
 
-  const [newTag, setNewTag] = useState('Office');
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      setSavedAddresses(loadAddresses());
+      // Clean up legacy dummy addresses from old storage keys if they exist
+      try {
+        localStorage.removeItem('minidmart_saved_addresses');
+      } catch {}
+    }
+  }, [user]);
+
+  const [newTag, setNewTag] = useState('Home');
   const [newAddress, setNewAddress] = useState('');
   const [newCity, setNewCity] = useState('Mumbai');
   const [newPincode, setNewPincode] = useState('400001');
@@ -82,29 +102,51 @@ const ProfilePage: React.FC = () => {
       error('Incomplete Fields', 'Please complete all address fields');
       return;
     }
+    const isFirst = savedAddresses.length === 0;
     const newAddr: SavedAddress = {
       id: Date.now().toString(),
       tag: newTag,
       address: newAddress.trim(),
       city: newCity.trim(),
       pincode: newPincode.trim(),
-      isDefault: savedAddresses.length === 0,
+      isDefault: isFirst,
     };
     const updated = [...savedAddresses, newAddr];
     setSavedAddresses(updated);
     try {
-      localStorage.setItem('onemart_saved_addresses', JSON.stringify(updated));
+      const key = getAddressStorageKey(user?.id);
+      localStorage.setItem(key, JSON.stringify(updated));
     } catch {}
     setIsAddingAddress(false);
     setNewAddress('');
+    setNewCity('Mumbai');
+    setNewPincode('400001');
+    setNewTag('Home');
     success('Address Added', `Saved "${newTag}" to your address book.`);
+  };
+
+  const handleSetDefaultAddress = (id: string) => {
+    const updated = savedAddresses.map((a) => ({
+      ...a,
+      isDefault: a.id === id,
+    }));
+    setSavedAddresses(updated);
+    try {
+      const key = getAddressStorageKey(user?.id);
+      localStorage.setItem(key, JSON.stringify(updated));
+    } catch {}
+    success('Default Address Set', 'Default delivery address updated.');
   };
 
   const handleDeleteAddress = (id: string) => {
     const updated = savedAddresses.filter((a) => a.id !== id);
+    if (updated.length > 0 && !updated.some((a) => a.isDefault)) {
+      updated[0].isDefault = true;
+    }
     setSavedAddresses(updated);
     try {
-      localStorage.setItem('onemart_saved_addresses', JSON.stringify(updated));
+      const key = getAddressStorageKey(user?.id);
+      localStorage.setItem(key, JSON.stringify(updated));
     } catch {}
     success('Address Removed', 'Address removed from your saved list.');
   };
@@ -337,33 +379,66 @@ const ProfilePage: React.FC = () => {
               </form>
             )}
 
-            <div className="space-y-2.5">
-              {savedAddresses.map((addr) => (
-                <div
-                  key={addr.id}
-                  className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 text-xs"
-                >
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-slate-900 dark:text-slate-100">{addr.tag}</span>
-                      {addr.isDefault && (
-                        <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.2 rounded">
-                          Default
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-slate-600 dark:text-slate-400 mt-0.5">{addr.address}, {addr.city} - {addr.pincode}</p>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteAddress(addr.id)}
-                    className="text-slate-400 hover:text-rose-500 p-1 transition"
-                    title="Delete Address"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+            {savedAddresses.length === 0 && !isAddingAddress ? (
+              <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 space-y-3">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                  <MapPin className="w-6 h-6" />
                 </div>
-              ))}
-            </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">No saved addresses yet</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Add your delivery address for a quick and seamless checkout experience.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAddingAddress(true)}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs inline-flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Your First Address</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {savedAddresses.map((addr) => (
+                  <div
+                    key={addr.id}
+                    className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-slate-900 dark:text-slate-100">{addr.tag}</span>
+                        {addr.isDefault ? (
+                          <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-md">
+                            Default
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetDefaultAddress(addr.id)}
+                            className="text-[10px] font-semibold text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:underline"
+                          >
+                            Set as default
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-400 mt-0.5">
+                        {addr.address}, {addr.city} - {addr.pincode}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAddress(addr.id)}
+                      className="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
+                      title="Delete Address"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

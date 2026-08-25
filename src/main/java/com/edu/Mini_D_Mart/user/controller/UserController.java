@@ -56,7 +56,10 @@ public class UserController {
 
         user.setName(request.name().trim());
         if (request.phone() != null) {
-            user.setPhone(request.phone().trim());
+            String trimmedPhone = request.phone().trim();
+            user.setPhone(trimmedPhone.isEmpty() ? null : trimmedPhone);
+        } else {
+            user.setPhone(null);
         }
 
         User saved = userRepository.save(user);

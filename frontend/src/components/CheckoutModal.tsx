@@ -46,8 +46,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('Mumbai');
   const [pincode, setPincode] = useState('400001');
-  const [phone, setPhone] = useState(user?.phone || '+91 98765 00004');
+  const [phone, setPhone] = useState(user?.phone || '');
   const [instructions, setInstructions] = useState('');
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
 
   const getLocalDateString = (d: Date = new Date()) => {
     const year = d.getFullYear();
@@ -72,8 +73,37 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
       setStep(1);
       setCompletedOrder(null);
       fetchSlots();
+
+      if (user?.phone) {
+        setPhone(user.phone);
+      }
+
+      try {
+        const key = user?.id ? `onemart_saved_addresses_${user.id}` : 'onemart_saved_addresses';
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            const valid = parsed.filter(
+              (a: any) =>
+                !(
+                  a.address === 'Flat 402, Sunshine Heights, MG Road' &&
+                  a.city === 'Mumbai' &&
+                  a.pincode === '400001'
+                )
+            );
+            setSavedAddresses(valid);
+            const defaultAddr = valid.find((a: any) => a.isDefault) || valid[0];
+            if (defaultAddr) {
+              setAddress(defaultAddr.address || '');
+              setCity(defaultAddr.city || 'Mumbai');
+              setPincode(defaultAddr.pincode || '400001');
+            }
+          }
+        }
+      } catch {}
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const fetchSlots = async () => {
     try {
@@ -321,10 +351,35 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
               </div>
             ) : (
               <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-200 dark:border-slate-700/80">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Delivery Address & Contact Details</span>
-                </h4>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>Delivery Address & Contact Details</span>
+                  </h4>
+                  {savedAddresses.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-slate-400">Quick fill:</span>
+                      {savedAddresses.map((sa) => (
+                        <button
+                          key={sa.id}
+                          type="button"
+                          onClick={() => {
+                            setAddress(sa.address);
+                            setCity(sa.city);
+                            setPincode(sa.pincode);
+                          }}
+                          className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition ${
+                            address === sa.address && city === sa.city && pincode === sa.pincode
+                              ? 'bg-emerald-100 dark:bg-emerald-950 border-emerald-500 text-emerald-800 dark:text-emerald-300'
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-emerald-400'
+                          }`}
+                        >
+                          {sa.tag} {sa.isDefault && '★'}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="sm:col-span-2">
                     <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">Street Address</label>
