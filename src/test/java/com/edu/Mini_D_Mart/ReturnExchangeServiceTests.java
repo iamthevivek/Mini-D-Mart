@@ -40,7 +40,7 @@ class ReturnExchangeServiceTests {
     @Test
     @DisplayName("Should verify return eligibility on delivered order")
     void testReturnEligibility() {
-        User customer = userRepository.findByEmailIgnoreCase("customer@minidmart.com").orElseThrow();
+        User customer = userRepository.findByEmailIgnoreCase("customer@onemart.com").orElseThrow();
         List<Order> orders = orderRepository.findAllByUserIdOrderByPlacedAtDesc(customer.getId());
 
         Order deliveredOrder = orders.stream()
@@ -61,7 +61,7 @@ class ReturnExchangeServiceTests {
     @Test
     @DisplayName("Staff can review and approve a return request with inventory restock")
     void testReviewReturnRequest() {
-        User staff = userRepository.findByEmailIgnoreCase("staff@minidmart.com").orElseThrow();
+        User staff = userRepository.findByEmailIgnoreCase("staff@onemart.com").orElseThrow();
         List<ReturnRequestResponse> allRequests = returnExchangeService.getAllRequests();
         assertFalse(allRequests.isEmpty());
 

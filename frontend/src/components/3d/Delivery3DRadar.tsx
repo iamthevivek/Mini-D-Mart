@@ -103,7 +103,7 @@ const Delivery3DRadar: React.FC<Delivery3DRadarProps> = ({ order }) => {
       <div className="absolute inset-0 z-0 pointer-events-none">
         <img
           src="/grocery_hero_bg.jpg"
-          alt="Mini D-Mart Store Dispatch Route"
+          alt="OneMart Store Dispatch Route"
           className="w-full h-full object-cover object-center filter brightness-[0.45] contrast-110 scale-105"
         />
         {/* Brand Emerald-to-Teal Gradient Overlay to match Website Hero & Header */}
@@ -121,16 +121,15 @@ const Delivery3DRadar: React.FC<Delivery3DRadarProps> = ({ order }) => {
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xs sm:text-sm font-black text-white tracking-wide drop-shadow-xs">
-                  Live GPS Dispatch Telemetry
+                <span className="font-mono text-xs font-black uppercase tracking-wider text-emerald-300">
+                  {order.fulfillmentType === 'HOME_DELIVERY' ? 'Doorstep Van Tracking' : 'Express Counter Queue'}
                 </span>
-                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 backdrop-blur-md">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Active Track</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-400/20 text-emerald-300 border border-emerald-400/40">
+                  LIVE GPS RADAR
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-100/80 mt-0.5 font-mono">
-                Vehicle ID: <strong className="text-white">DL-04-DM-2026</strong> • Driver: <strong className="text-white">Ramesh K. (Partner #408)</strong>
+              <p className="text-xs text-slate-300 font-mono mt-0.5">
+                Vehicle ID: <strong className="text-white">DL-04-OM-2026</strong> • Driver: <strong className="text-white">Ramesh K. (Partner #408)</strong>
               </p>
             </div>
           </div>
@@ -222,7 +221,7 @@ const Delivery3DRadar: React.FC<Delivery3DRadarProps> = ({ order }) => {
 
           {/* Start Hub & End Customer Pins */}
           <div className="flex items-center justify-between mt-8 text-xs font-semibold">
-            {/* Start: Mini D-Mart Hub */}
+            {/* Start: OneMart Hub */}
             <div className="flex items-center space-x-2.5">
               <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 text-emerald-300 flex items-center justify-center backdrop-blur-md shadow-xs">
                 <Store className="w-4 h-4" />

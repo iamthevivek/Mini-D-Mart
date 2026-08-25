@@ -8,7 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        dmart: {
+        onemart: {
           green: '#008744',
           'green-dark': '#006d36',
           'green-light': '#e8f5e9',

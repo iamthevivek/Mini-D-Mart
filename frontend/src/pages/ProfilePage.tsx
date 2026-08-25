@@ -31,7 +31,7 @@ const ProfilePage: React.FC = () => {
 
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>(() => {
     try {
-      const saved = localStorage.getItem('minidmart_saved_addresses');
+      const saved = localStorage.getItem('onemart_saved_addresses') || localStorage.getItem('minidmart_saved_addresses');
       return saved
         ? JSON.parse(saved)
         : [
@@ -93,7 +93,7 @@ const ProfilePage: React.FC = () => {
     const updated = [...savedAddresses, newAddr];
     setSavedAddresses(updated);
     try {
-      localStorage.setItem('minidmart_saved_addresses', JSON.stringify(updated));
+      localStorage.setItem('onemart_saved_addresses', JSON.stringify(updated));
     } catch {}
     setIsAddingAddress(false);
     setNewAddress('');
@@ -104,7 +104,7 @@ const ProfilePage: React.FC = () => {
     const updated = savedAddresses.filter((a) => a.id !== id);
     setSavedAddresses(updated);
     try {
-      localStorage.setItem('minidmart_saved_addresses', JSON.stringify(updated));
+      localStorage.setItem('onemart_saved_addresses', JSON.stringify(updated));
     } catch {}
     success('Address Removed', 'Address removed from your saved list.');
   };

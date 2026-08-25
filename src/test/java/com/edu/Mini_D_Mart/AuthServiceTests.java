@@ -68,18 +68,18 @@ class AuthServiceTests {
     @Test
     @DisplayName("Should login successfully with seeded customer credentials")
     void testLoginSuccess() {
-        LoginRequest loginRequest = new LoginRequest("customer@minidmart.com", "Customer@1234");
+        LoginRequest loginRequest = new LoginRequest("customer@onemart.com", "Customer@1234");
         AuthResponse response = authService.login(loginRequest);
 
         assertNotNull(response);
         assertNotNull(response.accessToken());
-        assertEquals("customer@minidmart.com", response.user().email());
+        assertEquals("customer@onemart.com", response.user().email());
     }
 
     @Test
     @DisplayName("Should fail login with wrong password")
     void testLoginWrongPassword() {
-        LoginRequest loginRequest = new LoginRequest("customer@minidmart.com", "WrongPassword999");
+        LoginRequest loginRequest = new LoginRequest("customer@onemart.com", "WrongPassword999");
         assertThrows(Exception.class, () -> authService.login(loginRequest));
     }
 }

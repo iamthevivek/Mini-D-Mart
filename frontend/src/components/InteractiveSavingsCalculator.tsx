@@ -5,7 +5,7 @@ import Card3DTilt from './3d/Card3DTilt';
 const InteractiveSavingsCalculator: React.FC = () => {
   const [monthlySpend, setMonthlySpend] = useState<number>(8000);
 
-  // Typical supermarket markup is ~22%, Mini D-Mart wholesale discount is ~24%
+  // Typical supermarket markup is ~22%, OneMart wholesale discount is ~24%
   const monthlySavings = Math.round(monthlySpend * 0.22);
   const yearlySavings = monthlySavings * 12;
   const freeDeliveryPerYear = Math.round((monthlySpend / 800) * 40 * 12);

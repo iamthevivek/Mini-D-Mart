@@ -74,7 +74,7 @@ public class AuthService {
         );
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
 
         String email = normalizeEmail(request.email());
@@ -89,11 +89,24 @@ public class AuthService {
 
         User user = userRepository
                 .findByEmailIgnoreCase(authentication.getName())
+                .or(() -> {
+                    if (email.endsWith("@onemart.com")) {
+                        return userRepository.findByEmailIgnoreCase(email.replace("@onemart.com", "@minidmart.com"));
+                    } else if (email.endsWith("@minidmart.com")) {
+                        return userRepository.findByEmailIgnoreCase(email.replace("@minidmart.com", "@onemart.com"));
+                    }
+                    return java.util.Optional.empty();
+                })
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Invalid email or password"
                         )
                 );
+
+        if (user.getEmail().toLowerCase().endsWith("@minidmart.com")) {
+            user.setEmail(user.getEmail().toLowerCase().replace("@minidmart.com", "@onemart.com"));
+            user = userRepository.save(user);
+        }
 
         String token = jwtService.generateToken(user);
 

@@ -615,7 +615,7 @@ const ManagerDashboardPage: React.FC = () => {
                     required
                     value={prodSku}
                     onChange={(e) => setProdSku(e.target.value)}
-                    placeholder="DM-VEG-999"
+                    placeholder="OM-VEG-999"
                     className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl font-mono uppercase bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
                   />
                 </div>

@@ -48,7 +48,7 @@ class OrderServiceTests {
     @Test
     @DisplayName("Should successfully place home delivery order, deduct stock, and calculate delivery fee")
     void testPlaceHomeDeliveryOrder() {
-        User customer = userRepository.findByEmailIgnoreCase("customer@minidmart.com").orElseThrow();
+        User customer = userRepository.findByEmailIgnoreCase("customer@onemart.com").orElseThrow();
         Product product = productRepository.findAllByActiveTrueOrderByCreatedAtDesc().get(0);
         int initialStock = product.getStockQuantity();
 
@@ -82,7 +82,7 @@ class OrderServiceTests {
     @Test
     @DisplayName("Should place store pickup order with slot reservation and verification code")
     void testPlaceStorePickupOrder() {
-        User customer = userRepository.findByEmailIgnoreCase("customer@minidmart.com").orElseThrow();
+        User customer = userRepository.findByEmailIgnoreCase("customer@onemart.com").orElseThrow();
         Product product = productRepository.findAllByActiveTrueOrderByCreatedAtDesc().get(0);
         List<PickupSlot> slots = pickupSlotRepository.findAll();
         assertFalse(slots.isEmpty());
@@ -114,7 +114,7 @@ class OrderServiceTests {
     @Test
     @DisplayName("Should cancel order, refund payment, and automatically restock inventory")
     void testCancelOrderAndRestock() {
-        User customer = userRepository.findByEmailIgnoreCase("customer@minidmart.com").orElseThrow();
+        User customer = userRepository.findByEmailIgnoreCase("customer@onemart.com").orElseThrow();
         Product product = productRepository.findAllByActiveTrueOrderByCreatedAtDesc().get(0);
         int initialStock = product.getStockQuantity();
 

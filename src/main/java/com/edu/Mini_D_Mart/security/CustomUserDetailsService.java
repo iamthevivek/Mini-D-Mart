@@ -20,8 +20,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
 
+        String query = username.trim();
         User user = userRepository
-                .findByEmailIgnoreCase(username)
+                .findByEmailIgnoreCase(query)
+                .or(() -> {
+                    if (query.endsWith("@onemart.com")) {
+                        return userRepository.findByEmailIgnoreCase(query.replace("@onemart.com", "@minidmart.com"));
+                    } else if (query.endsWith("@minidmart.com")) {
+                        return userRepository.findByEmailIgnoreCase(query.replace("@minidmart.com", "@onemart.com"));
+                    }
+                    return java.util.Optional.empty();
+                })
                 .orElseThrow(() ->
                         new UsernameNotFoundException(
                                 "Invalid email or password"

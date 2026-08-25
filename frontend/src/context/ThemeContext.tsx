@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem('minidmart_theme') as ThemeMode;
+    const saved = (localStorage.getItem('onemart_theme') || localStorage.getItem('minidmart_theme')) as ThemeMode;
     return saved || 'system';
   });
 
@@ -34,7 +34,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     applyTheme(theme);
-    localStorage.setItem('minidmart_theme', theme);
+    localStorage.setItem('onemart_theme', theme);
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {

@@ -1,7 +1,7 @@
-# Security Architecture & Policies — Mini D-Mart
+# Security Architecture & Policies — OneMart
 
 ## 1. Executive Summary & Threat Model
-Mini D-Mart is designed with security-by-design principles, implementing defense-in-depth across the network, authentication, authorization, business logic, data persistence, and auditing layers.
+OneMart is designed with security-by-design principles, implementing defense-in-depth across the network, authentication, authorization, business logic, data persistence, and auditing layers.
 
 ```
 +-----------------------------------------------------------------------------+
@@ -79,5 +79,5 @@ Mini D-Mart is designed with security-by-design principles, implementing defense
 
 ## 5. Security Incident Response
 If you discover any security issue or vulnerability:
-1. Please report responsibly by opening an issue or contacting the security administrator at `security@minidmart.com`.
+1. Please report responsibly by opening an issue or contacting the security administrator at `security@onemart.com`.
 2. Provide reproducible steps and impact analysis.

@@ -13,7 +13,7 @@ const prizes = [
   { label: '₹50 OFF', code: 'SAVE50', color: '#f59e0b', desc: 'Flat ₹50 OFF on cart' },
   { label: '10% DISCOUNT', code: 'EXTRA10', color: '#3b82f6', desc: '10% off your entire cart' },
   { label: 'FREE ORGANIC GIFT', code: 'FARMFRUIT', color: '#8b5cf6', desc: 'Free seasonal fruit box' },
-  { label: '15% MEGA SAVER', code: 'DMART15', color: '#ec4899', desc: '15% off fresh staples' },
+  { label: '15% MEGA SAVER', code: 'ONEMART15', color: '#ec4899', desc: '15% off fresh staples' },
   { label: '₹100 CASHBACK', code: 'CASH100', color: '#10b981', desc: '₹100 back on ₹1000+' },
 ];
 

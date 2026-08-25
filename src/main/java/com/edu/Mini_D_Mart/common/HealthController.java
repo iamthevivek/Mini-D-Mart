@@ -25,7 +25,7 @@ public class HealthController {
     public ResponseEntity<Map<String, Object>> healthCheck() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
-        response.put("service", "Mini-D-Mart Backend");
+        response.put("service", "OneMart Backend");
         response.put("timestamp", Instant.now().toString());
 
         // Touching the database connection wakes up / keeps active Neon DB

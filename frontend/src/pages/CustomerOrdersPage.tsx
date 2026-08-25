@@ -273,7 +273,7 @@ const CustomerOrdersPage: React.FC = () => {
                       <p className="text-slate-600 dark:text-slate-400">
                         Reserved Slot: <span className="font-bold text-slate-900 dark:text-slate-100">{order.pickupSlot?.formattedSlot || 'Reserved Slot'}</span>
                       </p>
-                      <p className="text-slate-600 dark:text-slate-400">Hub: Mini D-Mart Super Store, Metro Plaza Counter #2</p>
+                      <p className="text-slate-600 dark:text-slate-400">Hub: OneMart Super Store, Metro Plaza Counter #2</p>
                     </div>
                   ) : (
                     <div className="space-y-1.5">

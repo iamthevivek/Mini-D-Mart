@@ -62,7 +62,7 @@ const RegisterPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const user = await register(name, email, password, phone.trim() || undefined);
-      success('Account Created!', `Welcome to Mini D-Mart, ${user.name}!`);
+      success('Account Created!', `Welcome to OneMart, ${user.name}!`);
       navigate('/');
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Registration failed. Please check inputs.';

@@ -249,7 +249,7 @@ const LoginPage: React.FC = () => {
             {/* Bottom Register Redirect */}
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 text-center space-y-3">
               <p className="text-xs text-slate-600 dark:text-slate-400">
-                New to Mini D-Mart?{' '}
+                New to OneMart?{' '}
                 <Link
                   to="/register"
                   className="font-black text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"

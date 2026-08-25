@@ -1,4 +1,4 @@
-# 🛒 Mini D-Mart — Production-Ready Grocery Store Application
+# 🛒 OneMart — Production-Ready Grocery Store Application
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4%20%2F%204.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -10,9 +10,9 @@
 ---
 
 ## 📌 1. Project Overview & Assessment Objective
-**Mini D-Mart** is a full-featured, production-ready full-stack grocery store web application designed and built for the **Round 2 Practical Assessment**. 
+**OneMart** is a full-featured, production-ready full-stack grocery store web application designed and built for the **Round 2 Practical Assessment**. 
 
-Going far beyond a basic CRUD demo, Mini D-Mart delivers an enterprise-grade omnichannel grocery experience:
+Going far beyond a basic CRUD demo, OneMart delivers an enterprise-grade omnichannel grocery experience:
 - **Customers** can browse 30+ categorized grocery products, manage carts, choose between **Express Store Pickup** (with scheduled time slots & 6-digit verification OTP) or **Doorstep Home Delivery**, track live order progress on an interactive timeline, and initiate return/exchange requests with automated eligibility validation.
 - **Store Staff** have a dedicated **Operations Console** featuring a live **Order Preparation Queue (KOT packing slip style)**, one-click order progression, a **Store Pickup OTP Verification Tool**, and a **Returns Inspection Hub**.
 - **Managers & Administrators** have access to executive analytics KPIs (revenue, order volume, return rate), inventory stock control with instant restock and low-stock alerts, pickup slot capacity configuration, user RBAC privilege management, and tamper-evident audit logging.
@@ -24,7 +24,7 @@ Live Link :- https://onemart-h2js.onrender.com
 
 ```
 +-----------------------------------------------------------------------------------+
-|                                Mini D-Mart System                                 |
+|                                  OneMart System                                   |
 +-----------------------------------------------------------------------------------+
 |                                                                                   |
 |  [ FRONTEND - React 18 + TypeScript + Vite + Tailwind CSS + Lucide Icons ]        |
@@ -57,10 +57,10 @@ The system comes pre-initialized with secure default accounts for each role, wit
 
 | Role | Default Email | Password | Destination Dashboard / Workspace |
 |---|---|---|---|
-| **👑 ADMIN** | `admin@minidmart.com` | `Admin@1234` | `/admin` (System control, User RBAC assignment, Audit log streams, Catalog master) |
-| **📊 MANAGER** | `manager@minidmart.com` | `Manager@1234` | `/manager` (Sales & revenue KPI dashboard, Stock restock / adjust, Slot capacities) |
-| **📦 STAFF** | `staff@minidmart.com` | `Staff@1234` | `/staff` (Live order preparation queue, Pickup Counter 6-Digit OTP verification, Returns inspection) |
-| **🛒 CUSTOMER** | `customer@minidmart.com` | `Customer@1234` | `/` (Grocery catalog, Cart drawer, Store Pickup vs Home Delivery, Orders timeline) |
+| **👑 ADMIN** | `admin@onemart.com` | `Admin@1234` | `/admin` (System control, User RBAC assignment, Audit log streams, Catalog master) |
+| **📊 MANAGER** | `manager@onemart.com` | `Manager@1234` | `/manager` (Sales & revenue KPI dashboard, Stock restock / adjust, Slot capacities) |
+| **📦 STAFF** | `staff@onemart.com` | `Staff@1234` | `/staff` (Live order preparation queue, Pickup Counter 6-Digit OTP verification, Returns inspection) |
+| **🛒 CUSTOMER** | `customer@onemart.com` | `Customer@1234` | `/` (Grocery catalog, Cart drawer, Store Pickup vs Home Delivery, Orders timeline) |
 
 *Upon submitting credentials on the login screen, Spring Security executes real-time password verification via `BCryptPasswordEncoder`, generates a signed 256-bit JWT token, and automatically redirects the user to their designated role portal.*
 

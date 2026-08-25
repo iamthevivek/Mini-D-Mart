@@ -121,7 +121,7 @@ public class OrderService {
                 ? PaymentStatus.PENDING
                 : PaymentStatus.PAID;
 
-        String orderNumber = "DM-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "-" + String.format("%04d", random.nextInt(10000));
+        String orderNumber = "OM-" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "-" + String.format("%04d", random.nextInt(10000));
 
         Order order = new Order();
         order.setOrderNumber(orderNumber);

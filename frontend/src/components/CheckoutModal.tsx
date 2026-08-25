@@ -448,7 +448,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose }) => {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-900 dark:text-slate-100">Scan & Pay via UPI</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">UPI ID: <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">minidmart@upi</span></p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">UPI ID: <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">onemart@upi</span></p>
                   <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1">Instant order confirmation on payment scan</p>
                 </div>
               </div>

@@ -12,7 +12,7 @@ const RecentlyViewedContext = createContext<RecentlyViewedContextType | undefine
 export const RecentlyViewedProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>(() => {
     try {
-      const saved = localStorage.getItem('minidmart_recently_viewed');
+      const saved = localStorage.getItem('onemart_recently_viewed') || localStorage.getItem('minidmart_recently_viewed');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -21,7 +21,7 @@ export const RecentlyViewedProvider: React.FC<{ children: React.ReactNode }> = (
 
   useEffect(() => {
     try {
-      localStorage.setItem('minidmart_recently_viewed', JSON.stringify(recentlyViewed));
+      localStorage.setItem('onemart_recently_viewed', JSON.stringify(recentlyViewed));
     } catch {}
   }, [recentlyViewed]);
 

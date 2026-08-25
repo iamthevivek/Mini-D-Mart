@@ -21,7 +21,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [wishlist, setWishlist] = useState<Product[]>(() => {
     try {
       if (!user) return [];
-      const saved = localStorage.getItem(`minidmart_wishlist_${user.id}`);
+      const saved = localStorage.getItem(`onemart_wishlist_${user.id}`) || localStorage.getItem(`minidmart_wishlist_${user.id}`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -32,7 +32,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     if (user && user.role === 'CUSTOMER') {
       try {
-        const saved = localStorage.getItem(`minidmart_wishlist_${user.id}`);
+        const saved = localStorage.getItem(`onemart_wishlist_${user.id}`) || localStorage.getItem(`minidmart_wishlist_${user.id}`);
         setWishlist(saved ? JSON.parse(saved) : []);
       } catch {
         setWishlist([]);
@@ -46,7 +46,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     if (user && user.role === 'CUSTOMER') {
       try {
-        localStorage.setItem(`minidmart_wishlist_${user.id}`, JSON.stringify(wishlist));
+        localStorage.setItem(`onemart_wishlist_${user.id}`, JSON.stringify(wishlist));
       } catch {}
     }
   }, [wishlist, user]);

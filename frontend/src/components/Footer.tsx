@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Store,
   ShieldCheck,
+  Shield,
   Truck,
   RefreshCw,
   PhoneCall,
@@ -19,12 +20,18 @@ import {
   X,
   Tag,
   Loader2,
+  Server,
+  Database,
+  Terminal,
+  Activity,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import api from '../api/client';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 const Footer: React.FC = () => {
+  const { user } = useAuth();
   const { success, error } = useToast();
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,6 +93,197 @@ const Footer: React.FC = () => {
     success('Code Copied', `Voucher code ${claimedCode} copied to clipboard.`);
     setTimeout(() => setIsCopied(false), 2500);
   };
+
+  if (user && user.role !== 'CUSTOMER') {
+    return (
+      <footer className="mt-16 bg-slate-900 text-slate-300 border-t border-slate-800 shadow-2xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(#64748b_1px,transparent_1px)] [background-size:24px_24px] opacity-5 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+            {/* System Info */}
+            <div className="md:col-span-4 space-y-3">
+              <div className="flex items-center space-x-3">
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-md ${
+                    user.role === 'ADMIN'
+                      ? 'bg-purple-600'
+                      : user.role === 'MANAGER'
+                      ? 'bg-blue-600'
+                      : 'bg-amber-600'
+                  }`}
+                >
+                  <Shield className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-baseline leading-none">
+                    <span className="text-xl font-black text-white">One</span>
+                    <span className="text-xl font-black text-emerald-400">Mart</span>
+                  </div>
+                  <span className="block text-[9px] text-slate-400 tracking-wider font-extrabold uppercase mt-0.5">
+                    INTERNAL OPERATIONS PLATFORM
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Enterprise Management Console with Role-Based Access Control, live order fulfillment queue, and inventory stock locking.
+              </p>
+
+              <div className="space-y-1.5 text-xs text-slate-400 pt-1">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>
+                    Authenticated Session: <strong className="text-slate-200">{user.name}</strong> ({user.role})
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Server className="w-3.5 h-3.5 text-slate-400" />
+                  <span>API Status: <strong className="text-emerald-400 font-semibold">Online & Healthy (Port 8080)</strong></span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Database className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Database: <strong className="text-emerald-400 font-semibold">PostgreSQL Connected</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Navigation Modules */}
+            <div className="md:col-span-4 space-y-3">
+              <h5 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>Authorized Management Modules</span>
+              </h5>
+
+              <ul className="space-y-2 text-xs font-medium text-slate-400">
+                {user.role === 'ADMIN' && (
+                  <>
+                    <li>
+                      <Link to="/admin" className="hover:text-purple-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Admin Console & User RBAC Control</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/manager" className="hover:text-purple-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Manager Analytics & Stock Master</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/staff" className="hover:text-purple-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Staff Order Queue & Pickup Verifier</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <a
+                        href="http://localhost:8080/swagger-ui.html"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-purple-400 transition flex items-center space-x-2"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Interactive Swagger API Documentation</span>
+                      </a>
+                    </li>
+                  </>
+                )}
+
+                {user.role === 'MANAGER' && (
+                  <>
+                    <li>
+                      <Link to="/manager" className="hover:text-blue-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Manager KPI & Revenue Analytics</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/manager" className="hover:text-blue-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Product Catalog & Stock Adjustments</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/manager" className="hover:text-blue-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Express Pickup Slot Capacity Scheduler</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/staff" className="hover:text-blue-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Staff Operations & Dispatch</span>
+                      </Link>
+                    </li>
+                  </>
+                )}
+
+                {user.role === 'STAFF' && (
+                  <>
+                    <li>
+                      <Link to="/staff" className="hover:text-amber-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Live Order Packing & Dispatch Queue</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/staff" className="hover:text-amber-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Pickup Counter 6-Digit OTP Verification</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/staff" className="hover:text-amber-400 transition flex items-center space-x-2">
+                        <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Returns & Exchanges Inspection Hub</span>
+                      </Link>
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+
+            {/* Operational Security & Desk */}
+            <div className="md:col-span-4 space-y-3">
+              <h5 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span>Internal Support & Security</span>
+              </h5>
+
+              <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 space-y-2 text-xs text-slate-300">
+                <div className="flex items-center space-x-2 font-bold text-white">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Role-Enforced Access Policy</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  All administrative updates, inventory adjustments, and status changes are permanently logged to the audit trail.
+                </p>
+                <div className="pt-1 text-[11px] text-slate-400 space-y-1">
+                  <p>
+                    Internal IT Desk: <strong className="text-slate-200">admin-support@onemart.com</strong>
+                  </p>
+                  <p>
+                    Operations Desk: <strong className="text-slate-200">ops@onemart.com</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-px w-full bg-slate-800 mt-8" />
+
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
+            <p>© {new Date().getFullYear()} OneMart Supermarket Systems. Internal Operations Platform.</p>
+            <p className="flex items-center gap-1.5">
+              <Lock className="w-3 h-3 text-amber-400" />
+              <span>Confidential & Authorized Internal Access Only</span>
+            </p>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <div className="mt-16">
@@ -236,7 +434,7 @@ const Footer: React.FC = () => {
       <footer className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-emerald-100 border-t border-emerald-800/80 shadow-2xl relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:18px_18px] opacity-10 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-28 md:py-12 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             {/* Brand & Contact Information */}
             <div className="md:col-span-4 space-y-4">

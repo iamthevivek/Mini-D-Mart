@@ -68,9 +68,9 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        if (userRepository.count() == 0) {
-            seedUsers();
-        }
+        // Ensure default accounts exist with @onemart.com
+        migrateAndSeedUsers();
+
         if (categoryRepository.count() == 0) {
             seedCategoriesAndProducts();
         }
@@ -85,11 +85,38 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void seedUsers() {
-        createUser("Admin User", "admin@minidmart.com", "Admin@1234", "+91 98765 00001", Role.ADMIN);
-        createUser("Store Manager", "manager@minidmart.com", "Manager@1234", "+91 98765 00002", Role.MANAGER);
-        createUser("Staff Associate", "staff@minidmart.com", "Staff@1234", "+91 98765 00003", Role.STAFF);
-        createUser("John Customer", "customer@minidmart.com", "Customer@1234", "+91 98765 00004", Role.CUSTOMER);
+    private void migrateAndSeedUsers() {
+        // Migrate any legacy @minidmart.com users to @onemart.com
+        userRepository.findByEmailIgnoreCase("admin@minidmart.com").ifPresent(u -> {
+            u.setEmail("admin@onemart.com");
+            userRepository.save(u);
+        });
+        userRepository.findByEmailIgnoreCase("manager@minidmart.com").ifPresent(u -> {
+            u.setEmail("manager@onemart.com");
+            userRepository.save(u);
+        });
+        userRepository.findByEmailIgnoreCase("staff@minidmart.com").ifPresent(u -> {
+            u.setEmail("staff@onemart.com");
+            userRepository.save(u);
+        });
+        userRepository.findByEmailIgnoreCase("customer@minidmart.com").ifPresent(u -> {
+            u.setEmail("customer@onemart.com");
+            userRepository.save(u);
+        });
+
+        // Seed OneMart users if not present
+        if (userRepository.findByEmailIgnoreCase("admin@onemart.com").isEmpty()) {
+            createUser("Admin User", "admin@onemart.com", "Admin@1234", "+91 98765 00001", Role.ADMIN);
+        }
+        if (userRepository.findByEmailIgnoreCase("manager@onemart.com").isEmpty()) {
+            createUser("Store Manager", "manager@onemart.com", "Manager@1234", "+91 98765 00002", Role.MANAGER);
+        }
+        if (userRepository.findByEmailIgnoreCase("staff@onemart.com").isEmpty()) {
+            createUser("Staff Associate", "staff@onemart.com", "Staff@1234", "+91 98765 00003", Role.STAFF);
+        }
+        if (userRepository.findByEmailIgnoreCase("customer@onemart.com").isEmpty()) {
+            createUser("John Customer", "customer@onemart.com", "Customer@1234", "+91 98765 00004", Role.CUSTOMER);
+        }
     }
 
     private void createUser(String name, String email, String rawPassword, String phone, Role role) {
@@ -111,36 +138,36 @@ public class DataInitializer implements CommandLineRunner {
         Category personalCare = createCategory("Personal Care", "Soaps, shampoos, oral care and hygiene products", "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=500&auto=format&fit=crop");
         Category household = createCategory("Household Essentials", "Detergents, floor cleaners, kitchenware and disposables", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=500&auto=format&fit=crop");
 
-        createProduct("Fresh Alphonso Mangoes", "Premium sweet Alphonso mangoes directly from Ratnagiri farms.", fruitsVeg, "DM-FRU-001", "890123400001", "https://images.unsplash.com/photo-1553279768-865429fa0078?w=500&auto=format&fit=crop", "1 kg (approx 4 pcs)", new BigDecimal("450.00"), new BigDecimal("380.00"), 35, 10, false, 0);
-        createProduct("Fresh Red Apples", "Crisp, juicy and sweet Shimla apples rich in antioxidants.", fruitsVeg, "DM-FRU-002", "890123400002", "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500&auto=format&fit=crop", "1 kg", new BigDecimal("180.00"), new BigDecimal("149.00"), 45, 10, false, 0);
-        createProduct("Organic Farm Bananas", "Naturally ripened Robusta bananas packed with potassium.", fruitsVeg, "DM-FRU-003", "890123400003", "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=500&auto=format&fit=crop", "1 Dozen", new BigDecimal("70.00"), new BigDecimal("55.00"), 50, 10, false, 0);
-        createProduct("Fresh Hybrid Tomatoes", "Firm, glossy red tomatoes ideal for curries, salads and soups.", fruitsVeg, "DM-VEG-001", "890123400004", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop", "1 kg", new BigDecimal("40.00"), new BigDecimal("28.00"), 60, 15, false, 0);
-        createProduct("Fresh Red Onions", "High-pungency clean red onions for authentic everyday cooking.", fruitsVeg, "DM-VEG-002", "890123400005", "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=500&auto=format&fit=crop", "2 kg Net", new BigDecimal("80.00"), new BigDecimal("65.00"), 80, 15, false, 0);
-        createProduct("Fresh Farm Potatoes", "Premium dirt-free golden potatoes suitable for baking and frying.", fruitsVeg, "DM-VEG-003", "890123400006", "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=500&auto=format&fit=crop", "2 kg Net", new BigDecimal("70.00"), new BigDecimal("54.00"), 75, 15, false, 0);
+        createProduct("Fresh Alphonso Mangoes", "Premium sweet Alphonso mangoes directly from Ratnagiri farms.", fruitsVeg, "OM-FRU-001", "890123400001", "https://images.unsplash.com/photo-1553279768-865429fa0078?w=500&auto=format&fit=crop", "1 kg (approx 4 pcs)", new BigDecimal("450.00"), new BigDecimal("380.00"), 35, 10, false, 0);
+        createProduct("Fresh Red Apples", "Crisp, juicy and sweet Shimla apples rich in antioxidants.", fruitsVeg, "OM-FRU-002", "890123400002", "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500&auto=format&fit=crop", "1 kg", new BigDecimal("180.00"), new BigDecimal("149.00"), 45, 10, false, 0);
+        createProduct("Organic Farm Bananas", "Naturally ripened Robusta bananas packed with potassium.", fruitsVeg, "OM-FRU-003", "890123400003", "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=500&auto=format&fit=crop", "1 Dozen", new BigDecimal("70.00"), new BigDecimal("55.00"), 50, 10, false, 0);
+        createProduct("Fresh Hybrid Tomatoes", "Firm, glossy red tomatoes ideal for curries, salads and soups.", fruitsVeg, "OM-VEG-001", "890123400004", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop", "1 kg", new BigDecimal("40.00"), new BigDecimal("28.00"), 60, 15, false, 0);
+        createProduct("Fresh Red Onions", "High-pungency clean red onions for authentic everyday cooking.", fruitsVeg, "OM-VEG-002", "890123400005", "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=500&auto=format&fit=crop", "2 kg Net", new BigDecimal("80.00"), new BigDecimal("65.00"), 80, 15, false, 0);
+        createProduct("Fresh Farm Potatoes", "Premium dirt-free golden potatoes suitable for baking and frying.", fruitsVeg, "OM-VEG-003", "890123400006", "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=500&auto=format&fit=crop", "2 kg Net", new BigDecimal("70.00"), new BigDecimal("54.00"), 75, 15, false, 0);
 
-        createProduct("Amul Taaza Homogenised Toned Milk", "UHT treated pure toned milk with long shelf life.", dairyBakery, "DM-DAI-001", "890123400007", "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=500&auto=format&fit=crop", "1 L Tetrapack", new BigDecimal("74.00"), new BigDecimal("68.00"), 50, 15, false, 0);
-        createProduct("Amul Salted Butter", "Delicious creamy pasteurized butter made from pure milk fat.", dairyBakery, "DM-DAI-002", "890123400008", "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=500&auto=format&fit=crop", "500 g", new BigDecimal("275.00"), new BigDecimal("255.00"), 40, 10, true, 3);
-        createProduct("Fresh Malai Paneer", "Soft, succulent cottage cheese cubes rich in protein.", dairyBakery, "DM-DAI-003", "890123400009", "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=500&auto=format&fit=crop", "200 g", new BigDecimal("95.00"), new BigDecimal("85.00"), 30, 8, false, 0);
-        createProduct("Whole Wheat Multi-Grain Bread", "100% whole grain loaf with seeds, baked fresh daily.", dairyBakery, "DM-BAK-001", "890123400010", "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop", "400 g", new BigDecimal("55.00"), new BigDecimal("48.00"), 25, 5, false, 0);
+        createProduct("Amul Taaza Homogenised Toned Milk", "UHT treated pure toned milk with long shelf life.", dairyBakery, "OM-DAI-001", "890123400007", "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=500&auto=format&fit=crop", "1 L Tetrapack", new BigDecimal("74.00"), new BigDecimal("68.00"), 50, 15, false, 0);
+        createProduct("Amul Salted Butter", "Delicious creamy pasteurized butter made from pure milk fat.", dairyBakery, "OM-DAI-002", "890123400008", "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=500&auto=format&fit=crop", "500 g", new BigDecimal("275.00"), new BigDecimal("255.00"), 40, 10, true, 3);
+        createProduct("Fresh Malai Paneer", "Soft, succulent cottage cheese cubes rich in protein.", dairyBakery, "OM-DAI-003", "890123400009", "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=500&auto=format&fit=crop", "200 g", new BigDecimal("95.00"), new BigDecimal("85.00"), 30, 8, false, 0);
+        createProduct("Whole Wheat Multi-Grain Bread", "100% whole grain loaf with seeds, baked fresh daily.", dairyBakery, "OM-BAK-001", "890123400010", "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop", "400 g", new BigDecimal("55.00"), new BigDecimal("48.00"), 25, 5, false, 0);
 
-        createProduct("Fortune Sunlite Refined Sunflower Oil", "Light and healthy cooking oil enriched with vitamins A & D.", staplesGrains, "DM-STA-001", "890123400011", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=500&auto=format&fit=crop", "1 L Pouch", new BigDecimal("165.00"), new BigDecimal("139.00"), 65, 12, true, 7);
-        createProduct("Daawat Rozana Super Basmati Rice", "Aromatic long grain basmati rice perfect for daily meals.", staplesGrains, "DM-STA-002", "890123400012", "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop", "5 kg Bag", new BigDecimal("499.00"), new BigDecimal("399.00"), 40, 8, true, 7);
-        createProduct("Aashirvaad Shudh Chakki Atta", "100% whole wheat flour ground to perfection for soft rotis.", staplesGrains, "DM-STA-003", "890123400013", "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop", "5 kg Bag", new BigDecimal("260.00"), new BigDecimal("235.00"), 55, 10, true, 7);
-        createProduct("Tata Salt Vacuum Evaporated", "Iodized crystal salt providing essential mental development.", staplesGrains, "DM-STA-004", "890123400014", "https://images.unsplash.com/photo-1518110925495-5fe2fda0442c?w=500&auto=format&fit=crop", "1 kg", new BigDecimal("28.00"), new BigDecimal("24.00"), 100, 20, true, 7);
-        createProduct("Organic Toor Dal (Pigeon Pea)", "Unpolished high-protein toor dal for rich creamy dal tadka.", staplesGrains, "DM-STA-005", "890123400015", "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop", "1 kg", new BigDecimal("190.00"), new BigDecimal("165.00"), 4, 10, true, 7);
+        createProduct("Fortune Sunlite Refined Sunflower Oil", "Light and healthy cooking oil enriched with vitamins A & D.", staplesGrains, "OM-STA-001", "890123400011", "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=500&auto=format&fit=crop", "1 L Pouch", new BigDecimal("165.00"), new BigDecimal("139.00"), 65, 12, true, 7);
+        createProduct("Daawat Rozana Super Basmati Rice", "Aromatic long grain basmati rice perfect for daily meals.", staplesGrains, "OM-STA-002", "890123400012", "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop", "5 kg Bag", new BigDecimal("499.00"), new BigDecimal("399.00"), 40, 8, true, 7);
+        createProduct("Aashirvaad Shudh Chakki Atta", "100% whole wheat flour ground to perfection for soft rotis.", staplesGrains, "OM-STA-003", "890123400013", "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop", "5 kg Bag", new BigDecimal("260.00"), new BigDecimal("235.00"), 55, 10, true, 7);
+        createProduct("Tata Salt Vacuum Evaporated", "Iodized crystal salt providing essential mental development.", staplesGrains, "OM-STA-004", "890123400014", "https://images.unsplash.com/photo-1518110925495-5fe2fda0442c?w=500&auto=format&fit=crop", "1 kg", new BigDecimal("28.00"), new BigDecimal("24.00"), 100, 20, true, 7);
+        createProduct("Organic Toor Dal (Pigeon Pea)", "Unpolished high-protein toor dal for rich creamy dal tadka.", staplesGrains, "OM-STA-005", "890123400015", "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop", "1 kg", new BigDecimal("190.00"), new BigDecimal("165.00"), 4, 10, true, 7);
 
-        createProduct("Lay's Classic Salted Potato Chips", "Crunchy golden potato chips seasoned with natural salt.", snacksBev, "DM-SNA-001", "890123400016", "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=500&auto=format&fit=crop", "115 g Party Pack", new BigDecimal("50.00"), new BigDecimal("42.00"), 60, 15, true, 7);
-        createProduct("Oreo Vanilla Creme Biscuits", "Rich dark chocolate cookies filled with smooth vanilla cream.", snacksBev, "DM-SNA-002", "890123400017", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&auto=format&fit=crop", "300 g Family Pack", new BigDecimal("90.00"), new BigDecimal("75.00"), 50, 10, true, 7);
-        createProduct("Nescafe Classic Instant Coffee", "100% pure coffee beans for a rich and aromatic coffee experience.", snacksBev, "DM-BEV-001", "890123400018", "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop", "100 g Glass Jar", new BigDecimal("360.00"), new BigDecimal("299.00"), 35, 8, true, 7);
-        createProduct("Taj Mahal Tea Pouch", "Carefully selected premium orange pekoe tea leaves for rich liquor.", snacksBev, "DM-BEV-002", "890123400019", "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&auto=format&fit=crop", "500 g", new BigDecimal("320.00"), new BigDecimal("275.00"), 30, 8, true, 7);
+        createProduct("Lay's Classic Salted Potato Chips", "Crunchy golden potato chips seasoned with natural salt.", snacksBev, "OM-SNA-001", "890123400016", "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=500&auto=format&fit=crop", "115 g Party Pack", new BigDecimal("50.00"), new BigDecimal("42.00"), 60, 15, true, 7);
+        createProduct("Oreo Vanilla Creme Biscuits", "Rich dark chocolate cookies filled with smooth vanilla cream.", snacksBev, "OM-SNA-002", "890123400017", "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&auto=format&fit=crop", "300 g Family Pack", new BigDecimal("90.00"), new BigDecimal("75.00"), 50, 10, true, 7);
+        createProduct("Nescafe Classic Instant Coffee", "100% pure coffee beans for a rich and aromatic coffee experience.", snacksBev, "OM-BEV-001", "890123400018", "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop", "100 g Glass Jar", new BigDecimal("360.00"), new BigDecimal("299.00"), 35, 8, true, 7);
+        createProduct("Taj Mahal Tea Pouch", "Carefully selected premium orange pekoe tea leaves for rich liquor.", snacksBev, "OM-BEV-002", "890123400019", "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&auto=format&fit=crop", "500 g", new BigDecimal("320.00"), new BigDecimal("275.00"), 30, 8, true, 7);
 
-        createProduct("Dove Deep Moisture Body Wash", "Nourishing body cleanser with nutrium moisture for radiant skin.", personalCare, "DM-PC-001", "890123400020", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop", "800 ml Bottle", new BigDecimal("499.00"), new BigDecimal("399.00"), 40, 10, true, 7);
-        createProduct("Colgate Total Dental Cavity Toothpaste", "12-hour antibacterial whole mouth shield for complete oral care.", personalCare, "DM-PC-002", "890123400021", "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=500&auto=format&fit=crop", "150 g x 2 Twin Pack", new BigDecimal("220.00"), new BigDecimal("175.00"), 50, 12, true, 7);
-        createProduct("Head & Shoulders Smooth & Silky Shampoo", "Anti-dandruff formula with 24-hour frizz control.", personalCare, "DM-PC-003", "890123400022", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=500&auto=format&fit=crop", "650 ml Pump", new BigDecimal("550.00"), new BigDecimal("440.00"), 3, 10, true, 7);
+        createProduct("Dove Deep Moisture Body Wash", "Nourishing body cleanser with nutrium moisture for radiant skin.", personalCare, "OM-PC-001", "890123400020", "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop", "800 ml Bottle", new BigDecimal("499.00"), new BigDecimal("399.00"), 40, 10, true, 7);
+        createProduct("Colgate Total Dental Cavity Toothpaste", "12-hour antibacterial whole mouth shield for complete oral care.", personalCare, "OM-PC-002", "890123400021", "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=500&auto=format&fit=crop", "150 g x 2 Twin Pack", new BigDecimal("220.00"), new BigDecimal("175.00"), 50, 12, true, 7);
+        createProduct("Head & Shoulders Smooth & Silky Shampoo", "Anti-dandruff formula with 24-hour frizz control.", personalCare, "OM-PC-003", "890123400022", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=500&auto=format&fit=crop", "650 ml Pump", new BigDecimal("550.00"), new BigDecimal("440.00"), 3, 10, true, 7);
 
-        createProduct("Surf Excel Matic Top Load Detergent", "Superior liquid detergent for tough stain removal in washing machines.", household, "DM-HOU-001", "890123400023", "https://images.unsplash.com/photo-1585421514738-01798e348b17?w=500&auto=format&fit=crop", "2 L Bottle", new BigDecimal("460.00"), new BigDecimal("385.00"), 45, 10, true, 7);
-        createProduct("Lizol Disinfectant Surface Cleaner Citrus", "Kills 99.9% germs with long lasting fragrant citrus freshness.", household, "DM-HOU-002", "890123400024", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=500&auto=format&fit=crop", "2 L Jar", new BigDecimal("390.00"), new BigDecimal("320.00"), 35, 10, true, 7);
-        createProduct("Vim Lemon Dishwash Gel", "Power of 100 lemons removing stubborn grease in 1 spoon.", household, "DM-HOU-003", "890123400025", "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=500&auto=format&fit=crop", "750 ml Bottle", new BigDecimal("185.00"), new BigDecimal("155.00"), 60, 15, true, 7);
+        createProduct("Surf Excel Matic Top Load Detergent", "Superior liquid detergent for tough stain removal in washing machines.", household, "OM-HOU-001", "890123400023", "https://images.unsplash.com/photo-1585421514738-01798e348b17?w=500&auto=format&fit=crop", "2 L Bottle", new BigDecimal("460.00"), new BigDecimal("385.00"), 45, 10, true, 7);
+        createProduct("Lizol Disinfectant Surface Cleaner Citrus", "Kills 99.9% germs with long lasting fragrant citrus freshness.", household, "OM-HOU-002", "890123400024", "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=500&auto=format&fit=crop", "2 L Jar", new BigDecimal("390.00"), new BigDecimal("320.00"), 35, 10, true, 7);
+        createProduct("Vim Lemon Dishwash Gel", "Power of 100 lemons removing stubborn grease in 1 spoon.", household, "OM-HOU-003", "890123400025", "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=500&auto=format&fit=crop", "750 ml Bottle", new BigDecimal("185.00"), new BigDecimal("155.00"), 60, 15, true, 7);
     }
 
     private Category createCategory(String name, String description, String imageUrl) {
@@ -196,7 +223,9 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedSampleOrdersAndReturns() {
-        User customer = userRepository.findByEmailIgnoreCase("customer@minidmart.com").orElse(null);
+        User customer = userRepository.findByEmailIgnoreCase("customer@onemart.com")
+                .or(() -> userRepository.findByEmailIgnoreCase("customer@minidmart.com"))
+                .orElse(null);
         if (customer == null) return;
 
         List<Product> products = productRepository.findAll();
@@ -205,7 +234,7 @@ public class DataInitializer implements CommandLineRunner {
         List<PickupSlot> slots = pickupSlotRepository.findAll();
 
         Order deliveredOrder = new Order();
-        deliveredOrder.setOrderNumber("DM-20260820-8012");
+        deliveredOrder.setOrderNumber("OM-20260820-8012");
         deliveredOrder.setUser(customer);
         deliveredOrder.setFulfillmentType(FulfillmentType.HOME_DELIVERY);
         deliveredOrder.setStatus(OrderStatus.DELIVERED);
@@ -257,7 +286,7 @@ public class DataInitializer implements CommandLineRunner {
             pickupSlotRepository.save(slot);
 
             Order pickupOrder = new Order();
-            pickupOrder.setOrderNumber("DM-20260822-4091");
+            pickupOrder.setOrderNumber("OM-20260822-4091");
             pickupOrder.setUser(customer);
             pickupOrder.setFulfillmentType(FulfillmentType.STORE_PICKUP);
             pickupOrder.setStatus(OrderStatus.READY_FOR_PICKUP);
@@ -320,17 +349,17 @@ public class DataInitializer implements CommandLineRunner {
                 "SystemConfig",
                 "1",
                 1L,
-                "admin@minidmart.com",
+                "admin@onemart.com",
                 "ADMIN",
                 "127.0.0.1",
-                "Initialized Mini D-Mart application security and BCrypt encoder policies"
+                "Initialized OneMart application security and BCrypt encoder policies"
         ));
         auditLogRepository.save(new AuditLog(
                 "CATALOG_SEEDED",
                 "ProductCatalog",
                 "25",
                 1L,
-                "admin@minidmart.com",
+                "admin@onemart.com",
                 "ADMIN",
                 "127.0.0.1",
                 "Configured 6 grocery categories and 25 catalog products with pricing"
@@ -340,7 +369,7 @@ public class DataInitializer implements CommandLineRunner {
                 "PickupSlot",
                 "35",
                 2L,
-                "manager@minidmart.com",
+                "manager@onemart.com",
                 "MANAGER",
                 "127.0.0.1",
                 "Configured 35 express store pickup capacity slots across 7 operating days"
@@ -348,9 +377,9 @@ public class DataInitializer implements CommandLineRunner {
         auditLogRepository.save(new AuditLog(
                 "ORDER_PLACED",
                 "Order",
-                "DM-20260820-8012",
+                "OM-20260820-8012",
                 4L,
-                "customer@minidmart.com",
+                "customer@onemart.com",
                 "CUSTOMER",
                 "192.168.1.10",
                 "Placed Home Delivery order containing 2 grocery items (Total: ₹837.90)"
@@ -358,9 +387,9 @@ public class DataInitializer implements CommandLineRunner {
         auditLogRepository.save(new AuditLog(
                 "ORDER_DISPATCHED",
                 "Order",
-                "DM-20260820-8012",
+                "OM-20260820-8012",
                 3L,
-                "staff@minidmart.com",
+                "staff@onemart.com",
                 "STAFF",
                 "127.0.0.1",
                 "Verified and dispatched order package for doorstep delivery"
@@ -370,7 +399,7 @@ public class DataInitializer implements CommandLineRunner {
                 "ReturnRequest",
                 "RET-20260821-1002",
                 4L,
-                "customer@minidmart.com",
+                "customer@onemart.com",
                 "CUSTOMER",
                 "192.168.1.10",
                 "Submitted return request for Fortune Oil due to packaging seal tear"

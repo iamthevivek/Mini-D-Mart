@@ -47,7 +47,7 @@ const ScrollToTopButton: React.FC = () => {
   const strokeDashoffset = circumference - (scrollProgress / 100) * circumference;
 
   return (
-    <div className="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-40 animate-scale-in">
+    <div className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-4 md:bottom-8 md:right-8 z-30 animate-scale-in">
       <button
         onClick={scrollToTop}
         aria-label="Scroll to top"

@@ -19,7 +19,7 @@ const MobileBottomNav: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 py-1.5 px-3 shadow-lg">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 py-1.5 px-3 shadow-lg pb-[max(0.375rem,env(safe-area-inset-bottom))]">
       <div className="flex items-center justify-around">
         <Link
           to="/"

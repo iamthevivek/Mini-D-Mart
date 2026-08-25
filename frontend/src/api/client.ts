@@ -8,7 +8,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('minidmart_token');
+  const token = localStorage.getItem('onemart_token') || localStorage.getItem('minidmart_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -20,8 +20,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
 
-      const token = localStorage.getItem('minidmart_token');
+      const token = localStorage.getItem('onemart_token') || localStorage.getItem('minidmart_token');
       if (token && window.location.pathname !== '/login') {
+        localStorage.removeItem('onemart_token');
+        localStorage.removeItem('onemart_user');
         localStorage.removeItem('minidmart_token');
         localStorage.removeItem('minidmart_user');
         window.location.href = '/login';

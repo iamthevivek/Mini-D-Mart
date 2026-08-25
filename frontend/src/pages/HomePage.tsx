@@ -144,7 +144,7 @@ const HomePage: React.FC<HomePageProps> = ({
         <div className="absolute inset-0 z-0">
           <img
             src="/grocery_hero_bg.jpg"
-            alt="Mini D-Mart Fresh Supermarket"
+            alt="OneMart Fresh Supermarket"
             className="w-full h-full object-cover object-center filter brightness-[0.75] contrast-[1.05] scale-[1.02] transform transition-transform duration-1000"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/85 to-teal-950/80 backdrop-blur-[1px]" />

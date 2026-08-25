@@ -3,10 +3,10 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: minidmart-postgres
+    container_name: onemart-postgres
     restart: always
     environment:
-      POSTGRES_DB: minidmart
+      POSTGRES_DB: onemart
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres_secure_password_123
     ports:
@@ -23,19 +23,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: minidmart-backend
+    container_name: onemart-backend
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       PORT: 8080
-      DB_URL: jdbc:postgresql://postgres:5432/minidmart
+      DB_URL: jdbc:postgresql://postgres:5432/onemart
       DB_USERNAME: postgres
       DB_PASSWORD: postgres_secure_password_123
       DB_DRIVER: org.postgresql.Driver
       JWT_SECRET: dGhpcy1pcy1hLXNlY3VyZS0yNTYtYml0LXNlY3JldC1rZXktZm9yLW1pbmktZG1hcnQtand0LXRva2VuLXNpZ25pbmc=
-      JWT_ISSUER: mini-dmart-api
+      JWT_ISSUER: onemart-api
       JWT_EXPIRATION_MS: 86400000
       FRONTEND_URL: http://localhost,http://localhost:5173,http://localhost:3000
     ports:
@@ -45,7 +45,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: minidmart-frontend
+    container_name: onemart-frontend
     restart: always
     depends_on:
       - backend

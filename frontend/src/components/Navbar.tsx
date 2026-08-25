@@ -58,7 +58,7 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery = '', onSearchChange, onSel
   const [quickSearchResults, setQuickSearchResults] = useState<Product[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('minidmart_recent_searches');
+      const saved = localStorage.getItem('onemart_recent_searches') || localStorage.getItem('minidmart_recent_searches');
       return saved ? JSON.parse(saved) : ['Alphonso Mango', 'Amul Milk', 'Basmati Rice', 'Organic Dal'];
     } catch {
       return [];
@@ -139,7 +139,7 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery = '', onSearchChange, onSel
     const updated = [term, ...recentSearches.filter((s) => s.toLowerCase() !== term.toLowerCase())].slice(0, 6);
     setRecentSearches(updated);
     try {
-      localStorage.setItem('minidmart_recent_searches', JSON.stringify(updated));
+      localStorage.setItem('onemart_recent_searches', JSON.stringify(updated));
     } catch {}
     setIsSearchFocused(false);
 
@@ -197,27 +197,77 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery = '', onSearchChange, onSel
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800 shadow-xs transition-colors duration-200">
-      {/* Top Announcement Bar */}
-      <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-950 text-white text-[11px] sm:text-xs py-1.5 px-3 sm:px-6">
+      {/* Top Announcement Bar: Role-Tailored */}
+      <div
+        className={`text-white text-[11px] sm:text-xs py-1.5 px-3 sm:px-6 transition-colors ${
+          user?.role === 'ADMIN'
+            ? 'bg-gradient-to-r from-purple-950 via-slate-900 to-purple-900 border-b border-purple-800/40'
+            : user?.role === 'MANAGER'
+            ? 'bg-gradient-to-r from-blue-950 via-slate-900 to-blue-900 border-b border-blue-800/40'
+            : user?.role === 'STAFF'
+            ? 'bg-gradient-to-r from-amber-950 via-slate-900 to-amber-900 border-b border-amber-800/40'
+            : 'bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-950'
+        }`}
+      >
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2.5 truncate">
-            <span className="bg-amber-400 text-emerald-950 font-black px-2 py-0.5 rounded text-[9px] tracking-wider uppercase shrink-0 shadow-xs">
-              ⚡ FREE DELIVERY
-            </span>
-            <span className="truncate text-[10px] sm:text-xs text-emerald-50">
-              Orders ₹500+ qualify for zero delivery fee • Express 15-min Store Pickup Available
-            </span>
-          </div>
+          {user?.role === 'ADMIN' ? (
+            <div className="flex items-center space-x-2.5 truncate">
+              <span className="bg-purple-500 text-white font-black px-2 py-0.5 rounded text-[9px] tracking-wider uppercase shrink-0 shadow-xs">
+                👑 ADMIN SYSTEM
+              </span>
+              <span className="truncate text-[10px] sm:text-xs text-purple-100 font-medium">
+                Enterprise Security, RBAC Privileges & Tamper-Evident Audit Console
+              </span>
+            </div>
+          ) : user?.role === 'MANAGER' ? (
+            <div className="flex items-center space-x-2.5 truncate">
+              <span className="bg-blue-500 text-white font-black px-2 py-0.5 rounded text-[9px] tracking-wider uppercase shrink-0 shadow-xs">
+                📊 MANAGER PORTAL
+              </span>
+              <span className="truncate text-[10px] sm:text-xs text-blue-100 font-medium">
+                Store Performance Analytics, Inventory Stock Master & Pickup Slot Capacity
+              </span>
+            </div>
+          ) : user?.role === 'STAFF' ? (
+            <div className="flex items-center space-x-2.5 truncate">
+              <span className="bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded text-[9px] tracking-wider uppercase shrink-0 shadow-xs">
+                📦 STAFF OPERATIONS
+              </span>
+              <span className="truncate text-[10px] sm:text-xs text-amber-100 font-medium">
+                Live Order Packing Queue • Counter OTP Verification • Returns Hub
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2.5 truncate">
+              <span className="bg-amber-400 text-emerald-950 font-black px-2 py-0.5 rounded text-[9px] tracking-wider uppercase shrink-0 shadow-xs">
+                ⚡ FREE DELIVERY
+              </span>
+              <span className="truncate text-[10px] sm:text-xs text-emerald-50">
+                Orders ₹500+ qualify for zero delivery fee • Express 15-min Store Pickup Available
+              </span>
+            </div>
+          )}
 
           <div className="hidden sm:flex items-center space-x-4 text-[11px] text-emerald-100">
-            <span className="flex items-center gap-1.5 bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-700/50">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Open: 8 AM – 10 PM</span>
-            </span>
-            <span className="flex items-center gap-1 hover:text-amber-300 transition">
-              <PhoneCall className="w-3.5 h-3.5 text-amber-400" />
-              <span>Support: +91 8000-ONEMART</span>
-            </span>
+            {user && user.role !== 'CUSTOMER' ? (
+              <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/20 text-white font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>
+                  Active Role: <strong className="text-white">{user.role}</strong> ({user.name})
+                </span>
+              </span>
+            ) : (
+              <>
+                <span className="flex items-center gap-1.5 bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-700/50">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Open: 8 AM – 10 PM</span>
+                </span>
+                <span className="flex items-center gap-1 hover:text-amber-300 transition">
+                  <PhoneCall className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Support: +91 8000-ONEMART</span>
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -375,6 +425,7 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery = '', onSearchChange, onSel
                         <button
                           onClick={() => {
                             setRecentSearches([]);
+                            localStorage.removeItem('onemart_recent_searches');
                             localStorage.removeItem('minidmart_recent_searches');
                           }}
                           className="text-[10px] text-slate-400 hover:text-rose-500 font-semibold"
@@ -399,6 +450,90 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery = '', onSearchChange, onSel
                 </div>
               )}
             </div>
+          )}
+
+          {/* Operational Role Navigation Tabs (Desktop) */}
+          {!isCustomerOrGuest && (
+            <nav className="hidden md:flex items-center space-x-2 flex-1 justify-center max-w-xl">
+              {user?.role === 'ADMIN' && (
+                <>
+                  <Link
+                    to="/admin"
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center space-x-1.5 ${
+                      location.pathname === '/admin'
+                        ? 'bg-purple-600 text-white shadow-md'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>Admin Control</span>
+                  </Link>
+                  <Link
+                    to="/manager"
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center space-x-1.5 ${
+                      location.pathname === '/manager'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>Manager View</span>
+                  </Link>
+                  <Link
+                    to="/staff"
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center space-x-1.5 ${
+                      location.pathname === '/staff'
+                        ? 'bg-amber-600 text-white shadow-md'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Package className="w-3.5 h-3.5" />
+                    <span>Staff Queue</span>
+                  </Link>
+                </>
+              )}
+
+              {user?.role === 'MANAGER' && (
+                <>
+                  <Link
+                    to="/manager"
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center space-x-1.5 ${
+                      location.pathname === '/manager'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>Manager Dashboard</span>
+                  </Link>
+                  <Link
+                    to="/staff"
+                    className={`px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center space-x-1.5 ${
+                      location.pathname === '/staff'
+                        ? 'bg-amber-600 text-white shadow-md'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Package className="w-3.5 h-3.5" />
+                    <span>Staff Operations</span>
+                  </Link>
+                </>
+              )}
+
+              {user?.role === 'STAFF' && (
+                <Link
+                  to="/staff"
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold transition flex items-center space-x-1.5 ${
+                    location.pathname === '/staff'
+                      ? 'bg-amber-600 text-white shadow-md'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  <span>Operations Dispatch Queue</span>
+                </Link>
+              )}
+            </nav>
           )}
 
           {/* Right Action Icons & User Account Menu */}
@@ -472,36 +607,7 @@ const Navbar: React.FC<NavbarProps> = ({ searchQuery = '', onSearchChange, onSel
               </Link>
             )}
 
-            {/* Role Portal Shortcuts */}
-            {user && user.role === 'STAFF' && (
-              <Link
-                to="/staff"
-                className="hidden sm:flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 hover:bg-amber-100 font-bold text-xs border border-amber-200 dark:border-amber-800 transition"
-              >
-                <Package className="w-4 h-4" />
-                <span>Staff Operations</span>
-              </Link>
-            )}
 
-            {user && user.role === 'MANAGER' && (
-              <Link
-                to="/manager"
-                className="hidden sm:flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 hover:bg-blue-100 font-bold text-xs border border-blue-200 dark:border-blue-800 transition"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Manager Console</span>
-              </Link>
-            )}
-
-            {user && user.role === 'ADMIN' && (
-              <Link
-                to="/admin"
-                className="hidden sm:flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 hover:bg-purple-100 font-bold text-xs border border-purple-200 dark:border-purple-800 transition"
-              >
-                <Shield className="w-4 h-4" />
-                <span>Admin Console</span>
-              </Link>
-            )}
 
             {/* Shopping Cart Pill Button with Count & Subtotal */}
             {isCustomerOrGuest && (
