@@ -33,12 +33,14 @@ import { useRecentlyViewed } from '../context/RecentlyViewedContext';
 
 interface HomePageProps {
   searchQuery: string;
+  onClearSearch?: () => void;
   selectedCategoryId?: number | null;
   onSelectCategory?: (id: number | null) => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({
   searchQuery,
+  onClearSearch,
   selectedCategoryId: externalCategoryId,
   onSelectCategory: setExternalCategoryId,
 }) => {
@@ -266,9 +268,7 @@ const HomePage: React.FC<HomePageProps> = ({
             <button
               onClick={() => {
                 if (setExternalCategoryId) setExternalCategoryId(null);
-                const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
-                if (searchInput) searchInput.value = '';
-                window.location.href = '/';
+                if (onClearSearch) onClearSearch();
               }}
               className="px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold transition shadow-2xs"
             >

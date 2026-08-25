@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { CartSummary } from '../types';
 import { useAuth } from './AuthContext';
@@ -24,6 +25,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { success, error, info } = useToast();
+  const navigate = useNavigate();
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
@@ -51,7 +53,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addToCart = async (productId: number, quantity: number = 1) => {
     if (!user) {
-      window.location.href = '/login';
+      error('Sign In Required', 'Please sign in to add items to your shopping cart.');
+      navigate('/login');
+      return;
+    }
+    if (user.role !== 'CUSTOMER') {
+      error('Access Denied', 'Only customer accounts can add items to cart.');
       return;
     }
     try {

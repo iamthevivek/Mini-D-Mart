@@ -58,8 +58,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
   return <>{children}</>;
 };
 
-const RootLandingRoute: React.FC<{ searchQuery: string; selectedCategory: number | null; onSelectCategory: (id: number | null) => void }> = ({
+const RootLandingRoute: React.FC<{
+  searchQuery: string;
+  onClearSearch: () => void;
+  selectedCategory: number | null;
+  onSelectCategory: (id: number | null) => void;
+}> = ({
   searchQuery,
+  onClearSearch,
   selectedCategory,
   onSelectCategory,
 }) => {
@@ -82,6 +88,7 @@ const RootLandingRoute: React.FC<{ searchQuery: string; selectedCategory: number
   return (
     <HomePage
       searchQuery={searchQuery}
+      onClearSearch={onClearSearch}
       selectedCategoryId={selectedCategory}
       onSelectCategory={onSelectCategory}
     />
@@ -130,6 +137,7 @@ const AppContent: React.FC = () => {
             element={
               <RootLandingRoute
                 searchQuery={searchQuery}
+                onClearSearch={() => setSearchQuery('')}
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
               />
